@@ -74,6 +74,7 @@ h1,h2{font-family:'Fraunces',serif; margin:0;}
 
 /* ---------- intro ---------- */
 #view-intro.active{ display:flex; }
+#view-prelude.active{ display:flex; }
 .intro-stage{
   min-height:100vh; width:100%;
   display:flex; flex-direction:column; align-items:center; justify-content:center;
@@ -347,6 +348,16 @@ footer{ text-align:center; margin-top:30px; padding:20px 0; color:rgba(252,238,2
   </div>
 </div>
 
+<!-- ================= PRELUDE VIEW ================= -->
+<div class="view" id="view-prelude">
+  <div class="intro-stage">
+    <p class="intro-eyebrow">before the big question</p>
+    <h1 class="intro-title">I really really<br>love you 💜</h1>
+    <p class="intro-sub">and I've been wanting to ask you something for a long time...</p>
+    <button class="nb primary intro-continue" id="preludeContinue">Continue ✨</button>
+  </div>
+</div>
+
 <!-- ================= PROPOSAL VIEW ================= -->
 <div class="view" id="view-proposal">
   <div class="wrap" style="padding-top:60px;">
@@ -420,7 +431,7 @@ footer{ text-align:center; margin-top:30px; padding:20px 0; color:rgba(252,238,2
   function goTo(id){
     document.querySelectorAll('.view').forEach(function(v){ v.classList.remove('active'); });
     document.getElementById(id).classList.add('active');
-    topbar.style.display = (id === 'view-intro') ? 'none' : 'flex';
+    topbar.style.display = (id === 'view-intro' || id === 'view-prelude') ? 'none' : 'flex';
     window.scrollTo(0,0);
   }
 
@@ -717,6 +728,10 @@ footer{ text-align:center; margin-top:30px; padding:20px 0; color:rgba(252,238,2
 
   document.getElementById('introContinue').addEventListener('click', function(){
     tryStartMusic();
+    goTo('view-prelude');
+  });
+
+  document.getElementById('preludeContinue').addEventListener('click', function(){
     goTo('view-proposal');
   });
 
