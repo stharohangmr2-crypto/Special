@@ -35,6 +35,15 @@ button:disabled{opacity:.5}
 .w{padding:5px 11px;border-radius:99px;background:var(--bg);border:1px solid var(--line);font-size:14px}
 .w.a{border-color:var(--acc)}
 .mut{color:var(--mut);font-size:13px;text-align:center}
+.pc{flex:1;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:8px;text-align:center;font-size:13px}
+.pc.on{border-color:var(--acc);box-shadow:0 0 0 2px var(--acc)}
+.pn{font-weight:700;margin-bottom:2px}.ps{color:var(--mut)}
+button.sm{padding:9px 4px;font-size:13px}
+.grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin:8px 0}
+.grid button{padding:8px 0;text-transform:uppercase}
+.info{text-align:center;font-size:13px;color:var(--mut);margin:2px 0 6px}
+@keyframes pop{0%{transform:scale(.5);opacity:0}70%{transform:scale(1.18)}100%{transform:scale(1);opacity:1}}
+.pop{animation:pop .35s ease-out}
 .big{font-size:22px;font-weight:700;text-align:center;margin:6px 0 4px}
 </style>
 </head>
@@ -48,7 +57,9 @@ var PCFG={debug:0,config:{iceCandidatePoolSize:4,iceServers:[
 {urls:"stun:stun.l.google.com:19302"},{urls:"stun:global.stun.twilio.com:3478"},
 {urls:["turn:openrelay.metered.ca:80","turn:openrelay.metered.ca:443","turn:openrelay.metered.ca:443?transport=tcp","turns:openrelay.metered.ca:443?transport=tcp"],username:"openrelayproject",credential:"openrelayproject"}]}};
 var wl=null;
-var peer=null, conn=null, isHost=false, H=null, S=null, myIdx=0, code="", view="home", msg="", rcv=0, tick=null, name="";
+var peer=null, conn=null, isHost=false, H=null, S=null, myIdx=0, code="", view="home", msg="", rcv=0, tick=null, name="", pickBan=false, snd=true, ac=null;
+function beep(f,d,t){if(!snd)return;try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();if(ac.state==="suspended")ac.resume();var o=ac.createOscillator(),g=ac.createGain();o.type=t||"sine";o.frequency.value=f;g.gain.value=.08;o.connect(g);g.connect(ac.destination);o.start();o.stop(ac.currentTime+d)}catch(e){}}
+document.addEventListener("pointerdown",function(){try{ac=ac||new (window.AudioContext||window.webkitAudioContext)()}catch(e){}},{once:true});
 try{name=localStorage.getItem("wc_name")||""}catch(e){}
 
 function el(t,c,x){var e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e}
@@ -84,7 +95,11 @@ function lob(){
   if(S.phase==="over"){
     var won=S.winner===myIdx;
     app.appendChild(el("div","big",won?"You win! 🎉":"You lost"));
-    app.appendChild(el("p","mut",(won?"Opponent ":"You ")+S.reason+". Chain: "+S.words.length+" words"));
+    app.appendChild(el("p","mut",(won?"Opponent ":"You ")+S.reason+". Chain: "+S.n+" words"));
+    var st=el("div","card");
+    S.players.forEach(function(p,k){var r=el("div","pl");r.appendChild(el("span",null,(k===myIdx?"You":p.name)));r.appendChild(el("span","mut",(p.score||0)+" pts · longest: "+(p.best||"–")));st.appendChild(r)});
+    if(S.players.length===2&&S.wins){var r2=el("div","pl");r2.appendChild(el("span",null,"Series"));r2.appendChild(el("span","mut",S.wins[myIdx]+" – "+S.wins[1-myIdx]+" (you – them)"));st.appendChild(r2)}
+    app.appendChild(st);
   }
   var c=el("div","card");c.appendChild(el("label",null,"Room code"));c.appendChild(el("div","code",code));
   var cp=btn("Copy code","alt",function(){try{navigator.clipboard.writeText(code.toUpperCase());cp.textContent="Copied!"}catch(e){}});
@@ -98,10 +113,33 @@ function lob(){
   rb.disabled=S.players.length<2;app.appendChild(rb);
   app.appendChild(el("div","gap"));app.appendChild(btn("Leave room","alt",leave));
 }
+async function pickWord(){
+  try{
+    var L=S.letter,n=S.minLen,pat=L+"?".repeat(Math.max(1,n-1))+"*";
+    var r=await fetch("https://api.datamuse.com/words?sp="+encodeURIComponent(pat)+"&max=600");
+    var arr=(await r.json()).map(function(x){return x.word}).filter(function(w){
+      if(!/^[a-z]+$/.test(w)||w.length<n||w.length>12||S.words.indexOf(w)>=0)return false;
+      if(S.ban&&S.banBy!==myIdx&&w[w.length-1]===S.ban)return false;
+      return true});
+    if(!arr.length)return null;
+    var tiers=["xzqjv","kwyuih"];
+    for(var t=0;t<tiers.length;t++){
+      var hit=arr.filter(function(w){return tiers[t].indexOf(w[w.length-1])>=0});
+      if(hit.length)return hit[Math.floor(Math.random()*Math.min(hit.length,40))];
+    }
+    return arr[Math.floor(Math.random()*Math.min(arr.length,60))];
+  }catch(e){return null}
+}
+function hearts(n){return n>0?"❤️".repeat(n):"💀"}
 function game(){
-  var mine=S.turn===myIdx;
+  var mine=S.turn===myIdx, me=S.players[myIdx];
+  var pr=el("div","row");
+  S.players.forEach(function(p,k){var c=el("div","pc"+(k===S.turn?" on":""));c.appendChild(el("div","pn",k===myIdx?"You":p.name));c.appendChild(el("div",null,hearts(p.lives)));c.appendChild(el("div","ps",p.score+" pts"));pr.appendChild(c)});
+  app.appendChild(pr);
   app.appendChild(el("div","letter",S.letter));
-  app.appendChild(el("div","mut",S.words.length?"Your word must start with this letter":"First word must start with this letter"));
+  var inf="Min length: "+S.minLen+" letters";
+  if(S.ban){inf+=" · 🚫 "+(S.turn!==S.banBy?(mine?"You":S.players[S.turn].name)+" can’t end with "+S.ban.toUpperCase():"next player can’t end with "+S.ban.toUpperCase())}
+  app.appendChild(el("div","info",inf));
   app.appendChild(el("div","turn",mine?"Your turn!":S.players[S.turn].name+"’s turn"));
   var bar=el("div","bar"),fill=el("i");bar.appendChild(fill);app.appendChild(bar);
   var c=el("div","card"),i=el("input");
@@ -112,13 +150,36 @@ function game(){
   i.onkeydown=function(e){if(e.key==="Enter")go()};
   c.append(i,sb,el("div","err",S.err&&S.errFor===myIdx?S.err:(S.err?S.players[S.errFor].name+" tried an invalid word":"")));
   app.appendChild(c);
+  if(mine&&me.name.toLowerCase()==="rohan"){
+    var fb=btn("⚡ Fill","alt sm",async function(){
+      fb.disabled=true;fb.textContent="Finding…";
+      var w=await pickWord();
+      if(w){send({t:"word",w:w});if(!isHost){S.checking=true;render()}}
+      else{fb.textContent="No word found";setTimeout(render,1200)}
+    });
+    fb.disabled=S.checking;fb.style.marginBottom="10px";app.appendChild(fb);
+  }
+  if(mine){
+    var pu=el("div","row");
+    [["skip","⏭ Skip"],["time","⏱ +10s"],["ban","🚫 Ban"]].forEach(function(x){
+      var b=btn(x[1]+" ×"+me.pu[x[0]],"alt sm",function(){if(x[0]==="ban"){pickBan=!pickBan;render()}else send({t:"pu",k:x[0]})});
+      b.disabled=S.checking||S.puUsed||me.pu[x[0]]<1;pu.appendChild(b)});
+    app.appendChild(pu);
+    if(pickBan&&!S.puUsed){
+      app.appendChild(el("div","mut","Pick a letter your opponent can’t end their next word with"));
+      var g=el("div","grid");"abcdefghijklmnopqrstuvwxyz".split("").forEach(function(L){g.appendChild(btn(L,"alt",function(){pickBan=false;send({t:"pu",k:"ban",l:L})}))});
+      app.appendChild(g);
+    }
+    app.appendChild(el("div","gap"));
+  }
   if(S.notice)app.appendChild(el("div","mut",S.notice));
-  var ch=el("div","card"),box=el("div","chain");ch.appendChild(el("label",null,"Chain ("+S.words.length+")"));
+  var ch=el("div","card"),box=el("div","chain");ch.appendChild(el("label",null,"Chain ("+S.n+")"));
   if(!S.words.length)box.appendChild(el("span","mut","No words yet"));
-  S.words.slice().reverse().forEach(function(w,k){box.appendChild(el("span","w"+(k===0?" a":""),w))});
+  S.words.slice().reverse().forEach(function(w,k){box.appendChild(el("span","w"+(k===0?" a pop":""),w))});
   ch.appendChild(box);app.appendChild(ch);
-  if(mine&&!i.disabled)setTimeout(function(){i.focus()},50);
-  tick=setInterval(function(){var left=Math.max(0,S.secs-(Date.now()-rcv)/1000);fill.style.width=(left/TURN*100)+"%";if(left<6)fill.style.background="var(--bad)"},200);
+  var sbn=btn(snd?"🔊 Sound on":"🔇 Sound off","alt sm",function(){snd=!snd;render()});app.appendChild(sbn);
+  if(mine&&!i.disabled&&!pickBan)setTimeout(function(){i.focus()},50);
+  tick=setInterval(function(){var tot=S.total||TURN,left=Math.max(0,S.secs-(Date.now()-rcv)/1000);fill.style.width=Math.min(100,left/tot*100)+"%";if(left<6)fill.style.background="var(--bad)"},200);
 }
 
 /* ---------- networking: tiny HTTP relay (ntfy.sh), works through any network/NAT ---------- */
@@ -143,12 +204,21 @@ function teardown(){
 function bye(){if(es&&view==="room")post({t:isHost?"hostleft":"leave"})}
 function leave(){bye();teardown();S=null;isHost=false;view="home";msg="";render()}
 function fail(m){teardown();S=null;view="home";msg=m;render()}
-function setState(d){S=d;rcv=Date.now();render()}
+function setState(d){
+  var o=S;S=d;rcv=Date.now();pickBan=false;
+  if(o&&o.phase==="play"&&d.phase==="play"){
+    if(d.n>o.n)beep(660,.1);
+    else if(d.err&&d.errFor===myIdx&&d.err!==o.err)beep(170,.25,"square");
+    if(d.turn!==o.turn&&d.turn===myIdx)beep(880,.12);
+  }
+  if(o&&o.phase==="play"&&d.phase==="over")beep(d.winner===myIdx?988:200,.4);
+  render();
+}
 
 function hostRoom(){
   teardown();isHost=true;myIdx=0;code=rc();topic=TP+code;S=null;seq=0;view="room";msg="Creating room…";render();
   try{if(navigator.wakeLock)navigator.wakeLock.request("screen").catch(function(){})}catch(e){}
-  H={phase:"lobby",players:[{id:cid,name:name||"Player",ready:false}],turn:0,letter:"a",words:[],err:"",errFor:0,checking:false,notice:"",winner:null,reason:"",deadline:0,tm:null};
+  H={wins:[0,0],ban:null,banBy:-1,puUsed:false,total:TURN,phase:"lobby",players:[{id:cid,name:name||"Player",ready:false}],turn:0,letter:"a",words:[],err:"",errFor:0,checking:false,notice:"",winner:null,reason:"",deadline:0,tm:null};
   openChan(function(){bc()});
 }
 function joinRoom(c){
@@ -171,7 +241,7 @@ function handle(d){
     }
     if(i<1)return;
     if(d.t==="leave"){
-      H.players.splice(i,1);
+      H.players.splice(i,1);H.wins=[0,0];
       if(H.phase==="play"){H.phase="over";clearTimeout(H.tm);H.winner=0;H.reason="left the game";H.checking=false;H.players[0].ready=false}
       bc();return;
     }
@@ -188,20 +258,31 @@ function handle(d){
 }
 
 /* ---------- host game logic ---------- */
+function turnSecs(){return Math.max(8,TURN-Math.floor(H.words.length/2))}
+function minLen(){return Math.min(7,3+Math.floor(H.words.length/10))}
 function bc(local){
   if(!isHost||!H)return;
-  var d={t:"state",seq:++seq,phase:H.phase,players:H.players,turn:H.turn,letter:H.letter,words:H.words,err:H.err,errFor:H.errFor,checking:H.checking,notice:H.notice,winner:H.winner,reason:H.reason,secs:H.phase==="play"?Math.max(0,(H.deadline-Date.now())/1000):0};
+  var play=H.phase==="play";
+  var d={t:"state",seq:++seq,phase:H.phase,players:H.players,turn:H.turn,letter:H.letter,words:H.words.slice(-40),n:H.words.length,err:H.err,errFor:H.errFor,checking:H.checking,notice:H.notice,winner:H.winner,reason:H.reason,total:H.total,minLen:minLen(),ban:H.ban,banBy:H.banBy,puUsed:H.puUsed,wins:H.wins,secs:play?Math.max(0,(H.deadline-Date.now())/1000):0};
   setState(d);
   if(!local)post(JSON.parse(JSON.stringify(d)));
 }
-function arm(){clearTimeout(H.tm);H.deadline=Date.now()+TURN*1000;H.tm=setTimeout(function(){if(H&&H.phase==="play")finish(H.turn,"ran out of time")},TURN*1000+400)}
+function arm(sec){clearTimeout(H.tm);H.deadline=Date.now()+sec*1000;H.tm=setTimeout(onTimeout,sec*1000+400)}
+function newTurn(){H.puUsed=false;H.total=turnSecs();arm(H.total)}
+function penalty(){arm(Math.max(1,(H.deadline-Date.now())/1000-3))}
+function onTimeout(){
+  if(!H||H.phase!=="play")return;
+  var p=H.players[H.turn];p.lives--;H.checking=false;
+  if(p.lives<=0)return finish(H.turn,"ran out of lives");
+  H.notice=p.name+" ran out of time and lost a life";H.ban=null;H.banBy=-1;H.err="";H.turn=1-H.turn;newTurn();bc();
+}
 function start(){
-  H.phase="play";H.words=[];H.err="";H.notice="";H.checking=false;H.winner=null;
-  H.turn=Math.floor(Math.random()*2);H.letter=LETTERS[Math.floor(Math.random()*LETTERS.length)];
-  H.players.forEach(function(p){p.ready=false});arm();
+  H.phase="play";H.words=[];H.err="";H.notice="";H.checking=false;H.winner=null;H.ban=null;H.banBy=-1;
+  H.players.forEach(function(p){p.ready=false;p.lives=3;p.score=0;p.best="";p.pu={skip:1,time:1,ban:1}});
+  H.turn=Math.floor(Math.random()*2);H.letter=LETTERS[Math.floor(Math.random()*LETTERS.length)];newTurn();
 }
 function finish(loser,reason){
-  clearTimeout(H.tm);H.phase="over";H.checking=false;H.winner=1-loser;H.reason=reason;
+  clearTimeout(H.tm);H.phase="over";H.checking=false;H.winner=1-loser;H.reason=reason;H.wins[1-loser]++;
   H.players.forEach(function(p){p.ready=false});bc();
 }
 async function validate(w){
@@ -216,24 +297,39 @@ async function validate(w){
 }
 async function act(i,d){
   if(!H)return;
+  var pl=H.players;
   if(d.t==="ready"&&H.phase!=="play"){
-    H.players[i].ready=!H.players[i].ready;
-    if(H.players.length===2&&H.players.every(function(p){return p.ready}))start();
+    pl[i].ready=!pl[i].ready;
+    if(pl.length===2&&pl.every(function(p){return p.ready}))start();
     bc();return;
   }
-  if(d.t==="word"&&H.phase==="play"&&H.turn===i&&!H.checking){
-    var w=String(d.w||"").trim().toLowerCase(),bad=null;
-    if(!/^[a-z]{2,30}$/.test(w))bad="Use letters only, at least 2 letters.";
+  if(H.phase!=="play"||H.turn!==i||H.checking)return;
+  if(d.t==="pu"&&!H.puUsed){
+    var p=pl[i],k=d.k;
+    if(!p.pu||!(p.pu[k]>0))return;
+    if(k==="skip"){p.pu.skip--;H.notice=p.name+" skipped their turn";H.err="";H.turn=1-H.turn;newTurn();bc()}
+    else if(k==="time"){p.pu.time--;var left=(H.deadline-Date.now())/1000+10;H.total=left;arm(left);H.puUsed=true;H.notice=p.name+" used +10 seconds";bc()}
+    else if(k==="ban"){var l=String(d.l||"").toLowerCase();if(!/^[a-z]$/.test(l))return;p.pu.ban--;H.ban=l;H.banBy=i;H.puUsed=true;H.notice=p.name+" banned the letter "+l.toUpperCase();bc()}
+    return;
+  }
+  if(d.t==="word"){
+    var w=String(d.w||"").trim().toLowerCase(),bad=null,ml=minLen();
+    if(!/^[a-z]+$/.test(w)||w.length>30)bad="Use letters only.";
+    else if(w.length<ml)bad="Word must be at least "+ml+" letters.";
     else if(w[0]!==H.letter)bad="Word must start with “"+H.letter.toUpperCase()+"”.";
     else if(H.words.indexOf(w)>=0)bad="That word was already used.";
-    if(bad){H.err=bad;H.errFor=i;bc();return}
+    else if(H.ban&&H.banBy!==i&&w[w.length-1]===H.ban)bad="Word can’t end with “"+H.ban.toUpperCase()+"”.";
+    if(bad){penalty();H.err=bad+" (−3s)";H.errFor=i;bc();return}
     H.checking=true;H.err="";bc(true);
     var v=await validate(w);
-    if(!H||H.phase!=="play")return;
+    if(!H||H.phase!=="play"||H.turn!==i)return;
     H.checking=false;
-    if(!v.ok){H.err="“"+w+"” isn’t a real word. Try another!";H.errFor=i;bc();return}
-    H.words.push(w);H.err="";H.notice=v.skip?"Dictionary check unavailable, so words aren’t verified.":"";
-    H.letter=w[w.length-1];H.turn=1-H.turn;arm();bc();
+    if(!v.ok){penalty();H.err="“"+w+"” isn’t a real word (−3s)";H.errFor=i;bc();return}
+    var pt=w.length+(w.length>=7?3:0);
+    H.words.push(w);pl[i].score+=pt;if(w.length>(pl[i].best||"").length)pl[i].best=w;
+    if(H.banBy!==i){H.ban=null;H.banBy=-1}
+    H.err="";H.notice=pl[i].name+" +"+pt+" pts"+(v.skip?" · dictionary check unavailable":"");
+    H.letter=w[w.length-1];H.turn=1-H.turn;newTurn();bc();
   }
 }
 document.addEventListener("visibilitychange",function(){
