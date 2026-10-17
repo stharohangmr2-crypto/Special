@@ -4,7 +4,6 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Word Chain Duel</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.4/peerjs.min.js"></script>
 <style>
 :root{--bg:#f6f4ee;--card:#fff;--ink:#1d1c1a;--mut:#77736a;--acc:#4f46e5;--accT:#fff;--ok:#16a34a;--bad:#dc2626;--line:#e4e0d6}
 @media (prefers-color-scheme:dark){:root{--bg:#141413;--card:#201f1d;--ink:#f1efe8;--mut:#9a958a;--acc:#818cf8;--accT:#11101a;--line:#34322e}}
@@ -109,7 +108,7 @@ function game(){
   i.placeholder=mine?"Type a word starting with "+S.letter.toUpperCase():"Waiting…";i.disabled=!mine||S.checking;
   i.autocapitalize="off";i.autocomplete="off";i.spellcheck=false;
   var sb=btn(S.checking?"Checking word…":"Submit","",go);sb.disabled=i.disabled;sb.style.marginTop="10px";
-  function go(){var v=i.value.trim();if(!v)return;i.value="";send({t:"word",w:v})}
+  function go(){var v=i.value.trim();if(!v)return;i.value="";send({t:"word",w:v});if(!isHost){S.checking=true;render()}}
   i.onkeydown=function(e){if(e.key==="Enter")go()};
   c.append(i,sb,el("div","err",S.err&&S.errFor===myIdx?S.err:(S.err?S.players[S.errFor].name+" tried an invalid word":"")));
   app.appendChild(c);
@@ -122,64 +121,78 @@ function game(){
   tick=setInterval(function(){var left=Math.max(0,S.secs-(Date.now()-rcv)/1000);fill.style.width=(left/TURN*100)+"%";if(left<6)fill.style.background="var(--bad)"},200);
 }
 
-/* ---------- networking (peer-to-peer, host runs the game) ---------- */
-function send(d){if(isHost)act(0,d);else if(conn&&conn.open)conn.send(d)}
-function teardown(){
-  if(H&&H.tm)clearTimeout(H.tm);H=null;
-  try{if(conn)conn.close()}catch(e){}try{if(peer)peer.destroy()}catch(e){}
-  conn=null;peer=null;
+/* ---------- networking: tiny HTTP relay (ntfy.sh), works through any network/NAT ---------- */
+var NTFY="https://ntfy.sh", TP="wcduel9-", cid=Math.random().toString(36).slice(2,10), es=null, topic="", seq=0, lastSeq=0, gt=null;
+function post(d){
+  d.id=cid;
+  return fetch(NTFY+"/"+topic,{method:"POST",body:JSON.stringify(d),keepalive:true}).then(function(r){if(!r.ok)throw new Error(r.status)}).catch(function(){
+    if(view==="room"){if(!S)fail("Couldn’t reach the relay server (it may be rate-limiting). Try again in a minute.");else{S.notice="Message failed to send. Check your connection.";render()}}
+  });
 }
-function leave(){teardown();S=null;isHost=false;view="home";msg="";render()}
+function send(d){if(isHost)act(0,d);else post(d)}
+function openChan(onOpen){
+  if(typeof EventSource==="undefined")return fail("This browser can’t connect.");
+  es=new EventSource(NTFY+"/"+topic+"/sse");
+  es.onopen=function(){if(onOpen){var f=onOpen;onOpen=null;f()}};
+  es.onmessage=function(e){var o,d;try{o=JSON.parse(e.data);if(o.event!=="message")return;d=JSON.parse(o.message)}catch(x){return}handle(d)};
+}
+function teardown(){
+  if(H&&H.tm)clearTimeout(H.tm);H=null;clearTimeout(gt);
+  if(es){try{es.close()}catch(e){}es=null}
+}
+function bye(){if(es&&view==="room")post({t:isHost?"hostleft":"leave"})}
+function leave(){bye();teardown();S=null;isHost=false;view="home";msg="";render()}
 function fail(m){teardown();S=null;view="home";msg=m;render()}
-function setState(s){S=s;rcv=Date.now();render()}
+function setState(d){S=d;rcv=Date.now();render()}
 
 function hostRoom(){
-  teardown();isHost=true;myIdx=0;code=rc();S=null;view="room";msg="Creating room…";render();
-  if(typeof Peer==="undefined")return fail("Couldn’t load the connection library. Check your internet.");
-  peer=new Peer(PFX+code,PCFG);
-  try{if(navigator.wakeLock)navigator.wakeLock.request("screen").then(function(l){wl=l}).catch(function(){})}catch(e){}
-  peer.on("disconnected",function(){try{peer.reconnect()}catch(e){}});
-  peer.on("error",function(e){if(e.type==="unavailable-id")hostRoom();else fail("Connection problem ("+e.type+"). Try again.")});
-  peer.on("open",function(){
-    H={phase:"lobby",players:[{name:name||"Player",ready:false}],turn:0,letter:"a",words:[],err:"",errFor:0,checking:false,notice:"",winner:null,reason:"",deadline:0,tm:null};
-    bc();
-  });
-  peer.on("connection",function(c){
-    if(conn&&conn.open){c.on("open",function(){c.send({t:"full"});setTimeout(function(){c.close()},300)});return}
-    conn=c;
-    c.on("data",function(d){if(d.t==="join"){H.players[1]={name:clean(d.name),ready:false};bc()}else act(1,d)});
-    c.on("close",function(){
-      conn=null;if(!H)return;
-      if(H.phase==="play"){H.players.splice(1,1);H.phase="over";clearTimeout(H.tm);H.winner=0;H.reason="left the game";H.players[0].ready=false}
-      else H.players.splice(1,1);
-      bc();
-    });
-  });
+  teardown();isHost=true;myIdx=0;code=rc();topic=TP+code;S=null;seq=0;view="room";msg="Creating room…";render();
+  try{if(navigator.wakeLock)navigator.wakeLock.request("screen").catch(function(){})}catch(e){}
+  H={phase:"lobby",players:[{id:cid,name:name||"Player",ready:false}],turn:0,letter:"a",words:[],err:"",errFor:0,checking:false,notice:"",winner:null,reason:"",deadline:0,tm:null};
+  openChan(function(){bc()});
 }
 function joinRoom(c){
-  teardown();isHost=false;myIdx=1;code=c;S=null;view="room";msg="Joining room…";render();
-  if(typeof Peer==="undefined")return fail("Couldn’t load the connection library. Check your internet.");
-  peer=new Peer(PCFG);
-  var t=setTimeout(function(){if(!S)fail("Couldn’t connect to the room. Make sure the host still has the game open on screen, then try again.")},25000);
-  msg="Contacting server…";render();
-  peer.on("error",function(e){clearTimeout(t);fail(e.type==="peer-unavailable"?"Room not found. Check the code, and ask the host to keep the game page open (don’t switch apps).":"Connection problem ("+e.type+"). Try again.")});
-  peer.on("open",function(){
-    msg="Room found, connecting…";render();conn=peer.connect(PFX+c,{reliable:true});
-    conn.on("open",function(){conn.send({t:"join",name:name||"Player"})});
-    conn.on("data",function(d){
-      if(d.t==="full"){clearTimeout(t);fail("This room is full.");return}
-      if(d.players){clearTimeout(t);setState(d)}
-    });
-    conn.on("close",function(){if(view==="room")fail("The host left the room.")});
+  teardown();isHost=false;code=c;topic=TP+c;S=null;lastSeq=0;view="room";msg="Joining room…";render();
+  gt=setTimeout(function(){if(!S)fail("Room not found. Check the code and make sure the host has the game open on screen.")},15000);
+  openChan(function(){
+    post({t:"join",name:name||"Player"});
+    setTimeout(function(){if(!S&&es)post({t:"join",name:name||"Player"})},4000);
   });
+}
+function handle(d){
+  if(!d||d.id===cid)return;
+  if(isHost){
+    if(!H)return;
+    var i=H.players.findIndex(function(p){return p.id===d.id});
+    if(d.t==="join"){
+      if(i<0){if(H.players.length<2&&H.phase!=="play")H.players.push({id:d.id,name:clean(d.name),ready:false});else return}
+      else H.players[i].name=clean(d.name);
+      bc();return;
+    }
+    if(i<1)return;
+    if(d.t==="leave"){
+      H.players.splice(i,1);
+      if(H.phase==="play"){H.phase="over";clearTimeout(H.tm);H.winner=0;H.reason="left the game";H.checking=false;H.players[0].ready=false}
+      bc();return;
+    }
+    act(i,d);
+  }else{
+    if(d.t==="hostleft"){fail("The host left the room.");return}
+    if(d.t==="state"&&d.seq>lastSeq){
+      lastSeq=d.seq;clearTimeout(gt);
+      var k=d.players.findIndex(function(p){return p.id===cid});
+      if(k<0){fail("This room is full.");return}
+      myIdx=k;setState(d);
+    }
+  }
 }
 
 /* ---------- host game logic ---------- */
-function bc(){
+function bc(local){
   if(!isHost||!H)return;
-  var d={phase:H.phase,players:H.players,turn:H.turn,letter:H.letter,words:H.words,err:H.err,errFor:H.errFor,checking:H.checking,notice:H.notice,winner:H.winner,reason:H.reason,secs:H.phase==="play"?Math.max(0,(H.deadline-Date.now())/1000):0};
+  var d={t:"state",seq:++seq,phase:H.phase,players:H.players,turn:H.turn,letter:H.letter,words:H.words,err:H.err,errFor:H.errFor,checking:H.checking,notice:H.notice,winner:H.winner,reason:H.reason,secs:H.phase==="play"?Math.max(0,(H.deadline-Date.now())/1000):0};
   setState(d);
-  if(conn&&conn.open)conn.send(d);
+  if(!local)post(JSON.parse(JSON.stringify(d)));
 }
 function arm(){clearTimeout(H.tm);H.deadline=Date.now()+TURN*1000;H.tm=setTimeout(function(){if(H&&H.phase==="play")finish(H.turn,"ran out of time")},TURN*1000+400)}
 function start(){
@@ -214,7 +227,7 @@ async function act(i,d){
     else if(w[0]!==H.letter)bad="Word must start with “"+H.letter.toUpperCase()+"”.";
     else if(H.words.indexOf(w)>=0)bad="That word was already used.";
     if(bad){H.err=bad;H.errFor=i;bc();return}
-    H.checking=true;H.err="";bc();
+    H.checking=true;H.err="";bc(true);
     var v=await validate(w);
     if(!H||H.phase!=="play")return;
     H.checking=false;
@@ -224,9 +237,11 @@ async function act(i,d){
   }
 }
 document.addEventListener("visibilitychange",function(){
-  if(document.visibilityState==="visible"&&peer&&peer.disconnected&&!peer.destroyed){try{peer.reconnect()}catch(e){}}
-  if(document.visibilityState==="visible"&&isHost&&navigator.wakeLock){try{navigator.wakeLock.request("screen").then(function(l){wl=l}).catch(function(){})}catch(e){}}
+  if(document.visibilityState!=="visible"||view!=="room"||!es)return;
+  if(isHost){bc();try{if(navigator.wakeLock)navigator.wakeLock.request("screen").catch(function(){})}catch(e){}}
+  else post({t:"join",name:name||"Player"});
 });
+window.addEventListener("pagehide",bye);
 render();
 })();
 </script>
