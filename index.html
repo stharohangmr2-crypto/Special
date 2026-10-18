@@ -124,7 +124,7 @@ return res}
 var CH="abcdefghjkmnpqrstuvwxyz23456789",NTFY="https://ntfy.sh",TP="wcchess1-";
 var app=document.getElementById("app"),ENG=document.getElementById("eng").textContent;
 (0,eval)(ENG);
-var cid=Math.random().toString(36).slice(2,10),es=null,topic="",isHost=false,code="",G=null,view="home",msg="",name="",gid=null,gt=null,gno=0,worker=null,busy=false,sel=null,dests=[],promoQ=null,hint=null,note="";
+var cid=Math.random().toString(36).slice(2,10),es=null,topic="",isHost=false,code="",G=null,view="home",msg="",name="",gid=null,gt=null,gno=0,worker=null,busy=false,sel=null,dests=[],promoQ=null,hint=null,note="",auto=false,autoT=null;
 try{name=localStorage.getItem("ch_name")||""}catch(e){}
 var GL=[0,0x265F,0x265E,0x265D,0x265C,0x265B,0x265A].map(function(c){return c?String.fromCharCode(c,0xFE0E):""});
 function el(t,c,x){var e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e}
@@ -209,7 +209,9 @@ var row=el("div","row"),hb=btn("💡 Hint ("+G.hints+")","alt sm",onHint);hb.dis
 row.appendChild(btn("🏳 Resign","alt sm",function(){if(confirm("Resign this game?")){G.res={w:opp,t:"Resignation"};post({t:"res",no:G.no});render()}}));
 var db=btn(G.drawOffer==="me"?"Draw offered":"🤝 Draw","alt sm",function(){G.drawOffer="me";post({t:"dr",no:G.no});render()});db.disabled=G.drawOffer==="me";row.appendChild(db);
 app.appendChild(row);
-if(isR()){var nb=btn(busy?"Thinking…":"⚡ Next move","sm",onNext);nb.disabled=!mine||busy||!!promoQ;nb.style.marginBottom="8px";app.appendChild(nb)}
+if(isR()){var rr2=el("div","row"),nb=btn(busy?"Thinking…":"⚡ Next move","sm",onNext);nb.disabled=!mine||busy||!!promoQ||auto;
+var ab=btn(auto?"⏹ Auto play: ON":"▶ Auto play",auto?"sm":"alt sm",function(){auto=!auto;if(!auto){clearTimeout(autoT);autoT=null}render()});rr2.append(nb,ab);app.appendChild(rr2);
+if(auto&&mine&&!busy&&!promoQ&&!autoT)autoT=setTimeout(function(){autoT=null;if(auto&&isR()&&G&&!G.res&&G.st.turn===G.me&&!busy&&!promoQ)onNext()},700)}
 }else{
 var rm=btn(G.rm[0]?"Waiting for opponent to accept…":G.rm[1]?"Accept rematch":"Rematch","",onRematch);rm.disabled=G.rm[0];rm.style.marginBottom="8px";app.appendChild(rm)}
 var ml=el("div","card");ml.id="ml";var t="";G.sans.forEach(function(s,k){t+=(k%2?"":(k/2+1)+". ")+s+" "});ml.textContent=t||"Moves will appear here";app.appendChild(ml);ml.scrollTop=ml.scrollHeight;
@@ -244,7 +246,7 @@ es=new EventSource(NTFY+"/"+topic+"/sse");es.onopen=function(){if(f){var g=f;f=n
 es.onmessage=function(e){var o,d;try{o=JSON.parse(e.data);if(o.event!=="message")return;d=JSON.parse(o.message)}catch(x){return}handle(d)}}
 function teardown(){clearTimeout(gt);if(es){try{es.close()}catch(e){}es=null}}
 function bye(){if(es&&view==="room")post({t:isHost?"hostleft":"leave"})}
-function leave(){bye();teardown();G=null;view="home";msg="";isHost=false;busy=false;render()}
+function leave(){auto=false;clearTimeout(autoT);autoT=null;bye();teardown();G=null;view="home";msg="";isHost=false;busy=false;render()}
 function fail(m){teardown();G=null;view="home";msg=m;render()}
 function hostRoom(){teardown();isHost=true;code=rc();topic=TP+code;G=null;gid=null;gno=0;view="room";msg="";render();
 try{if(navigator.wakeLock)navigator.wakeLock.request("screen").catch(function(){})}catch(e){}
