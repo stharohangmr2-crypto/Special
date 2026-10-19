@@ -2591,6 +2591,7 @@ function easeOutBack(t) { const c1 = 1.70158, c3 = c1 + 1; return 1 + c3 * Math.
 const $ = (id) => document.getElementById(id);
 // The single-file (serverless) build provides window.BB_P2P; the Node server build leaves it undefined.
 const transport = window.BB_P2P || null;
+const BUILD = 'build 3';
 
 // ---------------------------------------------------------------- settings
 const SETTINGS_KEY = 'bb3d.settings';
@@ -2824,8 +2825,13 @@ function beginSession(mode, ev, data, code) {
     afterJoin(res);
   })).catch((err) => {
     transport.shutdown(true);
-    setStatus('ok', 'Ready');
-    afterJoin({ ok: false, error: err && err.message ? err.message : 'Could not connect.' });
+    setStatus('ok', `Ready (no server needed, ${BUILD})`);
+    console.error(err);
+    let msg = err && err.message ? err.message : 'Could not connect.';
+    if (err instanceof TypeError && err.stack) { // unexpected programming error: show where it happened so it can be fixed
+      msg += ` [${err.stack.split('\n').slice(1, 3).map((l) => l.trim().replace(/https?:\/\/[^ )]*\//g, '')).join(' | ')}]`;
+    }
+    afterJoin({ ok: false, error: msg });
   });
 }
 $('btn-create').addEventListener('click', () => {
@@ -2908,7 +2914,7 @@ function leaveToMenu() {
   exitMatch();
   closeModals();
   $('conn-banner').hidden = true;
-  if (transport) setStatus('ok', 'Ready (no server needed)');
+  if (transport) setStatus('ok', `Ready (no server needed, ${BUILD})`);
   showScreen('menu');
 }
 
@@ -3084,7 +3090,7 @@ $('btn-rematch').addEventListener('click', () => emitAck('room:rematch', {}, (re
 $('btn-lobby').addEventListener('click', () => emitAck('room:lobby', {}, (res) => { if (!res.ok) toast(res.error, true); }));
 $('btn-results-leave').addEventListener('click', leaveRoom);
 
-if (transport) setStatus('ok', 'Ready (no server needed)'); else setStatus('wait', 'Connecting…');
+if (transport) setStatus('ok', `Ready (no server needed, ${BUILD})`); else setStatus('wait', 'Connecting…');
 
 </script>
 </body>
