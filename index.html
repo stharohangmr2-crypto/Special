@@ -122,6 +122,9 @@ input[type="text"]:focus-visible, select:focus-visible, .btn:focus-visible, .lin
 .hud-right { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; flex: 1 1 0; pointer-events: auto; }
 .hud-net { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; padding: 3px 8px; border-radius: 999px; background: rgba(16, 48, 58, 0.78); }
 .hud-stats { position: absolute; left: calc(var(--safe-l) + 10px); top: calc(var(--safe-t) + 100px); display: flex; flex-wrap: wrap; gap: 5px; max-width: 46vw; }
+.hunt-arrow { position: absolute; left: 0; top: 0; width: 34px; height: 34px; margin: -17px 0 0 -17px; pointer-events: none; z-index: 5; display: none; will-change: transform; }
+.hunt-arrow svg { width: 100%; height: 100%; display: block; filter: drop-shadow(0 2px 2px rgba(0,0,0,.7)); }
+.hunt-arrow b { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); font-size: 11px; font-weight: 900; color: #10303a; }
 .chip { font-size: 13px; font-weight: 800; padding: 3px 9px; border-radius: 999px; background: rgba(16, 48, 58, 0.78); color: var(--cream); }
 .effects { display: contents; }
 .chip.fx { background: rgba(255, 212, 59, 0.92); color: var(--ink); }
@@ -306,7 +309,7 @@ body.reduce-motion .btn { transition: none; }
     <div class="modal-card">
       <h2 id="howto-title">How to play</h2>
       <ul class="howto">
-        <li>Be the last banana standing. Blast crates, dodge flames, trap your friends.</li>
+        <li>Be the last banana standing. The camera follows you up close, so explore the arena to find your rivals. Arrows at the screen edge point to them. Blast crates, dodge flames, and bomb your friends.</li>
         <li><b>Move:</b> drag the left side of the screen, or use WASD / arrow keys.</li>
         <li><b>Bomb:</b> the Bomb button or Space. Bombs explode after 2.5 seconds in a cross shape. Walls stop the blast, crates break it.</li>
         <li><b>Red tiles</b> show where flames are about to land. Bombs chain into each other.</li>
@@ -1536,7 +1539,7 @@ function createTransport({ Peer, rooms, config, now = () => Date.now(), timers =
 
   // ------------------------------------------------------------ transport
   const socket = new ClientSocket();
-  const T = { socket, isHost: false, host: null, peer: null, conn: null, code: null, closing: false, wakeLock: null };
+  const T = { onStatus: null, socket, isHost: false, host: null, peer: null, conn: null, code: null, closing: false, wakeLock: null };
 
   const waitOpen = (peer, ms, what) => new Promise((resolve, reject) => {
     let done = false;
@@ -1571,12 +1574,15 @@ function createTransport({ Peer, rooms, config, now = () => Date.now(), timers =
     }
     // join
     T.code = code; T.isHost = false;
+    const status = (t) => { if (T.onStatus) T.onStatus(t); };
+    status('Contacting matchmaking service…');
     const peer = new Peer(undefined, { config: ICE });
-    try { await waitOpen(peer, 12000, 'Connecting to the matchmaking service'); } catch (e) {
+    try { await waitOpen(peer, 15000, 'Connecting to the matchmaking service'); } catch (e) {
       try { peer.destroy(); } catch (x) { /* ignore */ }
       throw new Error(e && e.type ? `Could not reach the matchmaking service (${e.type}).` : (e.message || 'Could not connect.'));
     }
     T.peer = peer;
+    status('Connecting to host…');
     await T._dial();
   };
 
@@ -1584,12 +1590,28 @@ function createTransport({ Peer, rooms, config, now = () => Date.now(), timers =
     return new Promise((resolve, reject) => {
       const peer = T.peer;
       const conn = peer.connect(PREFIX + T.code, { reliable: true, serialization: 'json' });
-      let opened = false;
-      const t = timers.setTimeout(() => { if (!opened) { try { conn.close(); } catch (e) { /* ignore */ } reject(new Error('No answer from the host. Check the code, and make sure the host keeps the game open.')); } }, 12000);
-      const onPeerErr = (err) => { if (!opened && err && err.type === 'peer-unavailable') { timers.clearTimeout(t); reject(new Error('No room with that code. Check the code and make sure the host is online.')); } };
+      let opened = false, iceState = 'none';
+      const slow = timers.setTimeout(() => { if (!opened && T.onStatus) T.onStatus('Still trying… direct connections can be slow'); }, 7000);
+      const watchIce = timers.setInterval(() => {
+        const pc = conn.peerConnection;
+        if (pc && pc.iceConnectionState) iceState = pc.iceConnectionState;
+      }, 500);
+      const cleanup = () => { timers.clearTimeout(slow); timers.clearInterval(watchIce); timers.clearTimeout(t); };
+      const t = timers.setTimeout(() => {
+        if (opened) return;
+        cleanup();
+        try { conn.close(); } catch (e) { /* ignore */ }
+        const pc = conn.peerConnection;
+        if (pc && pc.iceConnectionState) iceState = pc.iceConnectionState;
+        const hint = iceState === 'failed' || iceState === 'disconnected' || iceState === 'checking' || iceState === 'new'
+          ? ' Your two phones could not open a direct connection (common on mobile data or strict Wi-Fi). Try both phones on the same Wi-Fi, or have the host share a hotspot.'
+          : ' Check the code, and make sure the host keeps the game open on screen.';
+        reject(new Error(`No answer from the host (${iceState}).${hint}`));
+      }, 20000);
+      const onPeerErr = (err) => { if (!opened && err && err.type === 'peer-unavailable') { cleanup(); reject(new Error('No room with that code. Check the code and make sure the host is online.')); } };
       peer.on('error', onPeerErr);
       conn.on('open', () => {
-        opened = true; timers.clearTimeout(t);
+        opened = true; cleanup();
         T.conn = conn; socket.connected = true;
         conn.on('data', (msg) => {
           if (!isObj(msg)) return;
@@ -1602,7 +1624,7 @@ function createTransport({ Peer, rooms, config, now = () => Date.now(), timers =
         socket.fire('connect');
         resolve();
       });
-      conn.on('error', (e) => { if (!opened) { timers.clearTimeout(t); reject(new Error('Connection to the host failed.')); } });
+      conn.on('error', () => { if (!opened) { cleanup(); reject(new Error('Connection to the host failed.')); } });
     });
   };
 
@@ -1876,7 +1898,7 @@ class GameScene {
     this.renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
     this.renderer.setClearColor(0x0c2a33);
     this.scene = new THREE.Scene();
-    this.scene.fog = new THREE.Fog(0x0c2a33, 28, 70);
+    this.scene.fog = new THREE.Fog(0x0c2a33, 14, 30);
     this.camera = new THREE.PerspectiveCamera(38, 1, 0.1, 120);
     this.maxDpr = 2;
     this.dpr = Math.min(window.devicePixelRatio || 1, this.maxDpr);
@@ -1998,6 +2020,7 @@ class GameScene {
   cellZ(cy) { return cy - this.rows / 2; }
 
   clearMatch() {
+    if (this.arrows) { for (const el of this.arrows.values()) el.remove(); this.arrows.clear(); }
     for (const v of this.bombViews.values()) v.bodyMat.dispose();
     for (const v of this.upViews.values()) v.mats.forEach((m) => m.dispose());
     for (const d of this.disposables) { if (d.dispose) d.dispose(); }
@@ -2093,8 +2116,11 @@ class GameScene {
     for (const f of payload.flames || []) this._spawnFlames(f.cells, [], f.ms, this.cfg.flameMs);
     this.pushSnapshot(payload.snap);
     this.resize();
-    // start camera centred
+    // start the camera on the local player right away
     this.camTarget.set(0, 0, 0.3);
+    this.camDist = this.camDistNear; this.camEl = 52 * DEG;
+    this.scene.fog.near = this.camDistNear * 1.05; this.scene.fog.far = this.camDistNear * 2.1;
+    if (this.arrows) { for (const el of this.arrows.values()) el.remove(); this.arrows.clear(); }
   }
 
   _setCrateMatrices(i, wx, wz, s) {
@@ -2407,7 +2433,11 @@ class GameScene {
     this.camera.aspect = w / h;
     const fov = this.camera.fov * DEG;
     const needV = Math.max(this.rows * 0.94 + 3.4, (this.cols + 2.6) / this.camera.aspect);
-    this.camDist = needV / (2 * Math.tan(fov / 2));
+    this.camDistFar = needV / (2 * Math.tan(fov / 2));
+    // close third-person view: roughly 9 cells tall / 7 cells wide around the player
+    const nearV = Math.max(9, 7 / this.camera.aspect);
+    this.camDistNear = nearV / (2 * Math.tan(fov / 2));
+    if (!this.camDist) this.camDist = this.camDistNear;
     this.camera.updateProjectionMatrix();
   }
 
@@ -2557,11 +2587,24 @@ class GameScene {
   }
 
   _updateCamera(dt, now, reduce) {
-    const target = this._tmpTarget.set(0, 0, 0.3);
     const me = this.localId && this.players.get(this.localId);
-    if (me && me.alive && me.init) { target.x = me.root.position.x * 0.12; target.z = 0.3 + me.root.position.z * 0.1; }
-    this.camTarget.lerp(target, 1 - Math.exp(-dt * 3));
-    const el = 63 * DEG;
+    const following = !!(me && me.alive && me.init && me.dying < 0);
+    const target = this._tmpTarget;
+    let wantDist, wantEl;
+    if (following) {
+      // third person: stay right behind the banana, look a little ahead of it
+      target.set(me.root.position.x, 0.5, me.root.position.z - 0.9);
+      wantDist = this.camDistNear; wantEl = 52 * DEG;
+    } else {
+      // dead or between matches: pull back to see the whole arena
+      target.set(0, 0, 0.3);
+      wantDist = this.camDistFar; wantEl = 63 * DEG;
+    }
+    const kf = 1 - Math.exp(-dt * (following ? 7 : 2.5));
+    this.camTarget.lerp(target, kf);
+    this.camDist += (wantDist - this.camDist) * kf;
+    this.camEl = (this.camEl || wantEl) + (wantEl - (this.camEl || wantEl)) * kf;
+    const el = this.camEl;
     const d = this.camDist;
     let sx = 0, sy = 0;
     if (this.shake > 0.001) {
@@ -2570,7 +2613,54 @@ class GameScene {
     }
     this.camera.position.set(this.camTarget.x + sx, this.camTarget.y + d * Math.sin(el) + sy, this.camTarget.z + d * Math.cos(el));
     this.camera.lookAt(this.camTarget);
-    this.sun.position.set(6, 16, 9);
+    this.sun.position.set(this.camTarget.x + 6, 16, this.camTarget.z + 9);
+    this.sun.target.position.set(this.camTarget.x, 0, this.camTarget.z);
+    this.sun.target.updateMatrixWorld();
+    // fog follows the zoom so far parts of the arena fade out and you have to go hunting
+    this.scene.fog.near = d * 1.05;
+    this.scene.fog.far = d * (following ? 2.1 : 3.2);
+    this._updateHuntArrows(following);
+  }
+
+  // Arrows at the screen edge pointing to opponents that are not currently on screen.
+  _updateHuntArrows(following) {
+    if (!this.arrows) this.arrows = new Map();
+    const host = document.getElementById('screen-game');
+    const w = this.canvas.clientWidth, h = this.canvas.clientHeight;
+    const v3 = this._arrowV || (this._arrowV = new THREE.Vector3());
+    const seen = new Set();
+    if (following && host) {
+      const mx = 34, top = 120, bottom = h - 150; // keep clear of HUD and thumb controls
+      for (const v of this.players.values()) {
+        if (v.id === this.localId || !v.alive || v.dying >= 0) continue;
+        let el = this.arrows.get(v.id);
+        if (!el) {
+          const col = '#' + v.ring.material.color.getHexString();
+          el = document.createElement('div'); el.className = 'hunt-arrow';
+          el.innerHTML = `<svg viewBox="0 0 40 40"><path d="M20 2 L36 30 Q20 24 4 30 Z" fill="${col}" stroke="#fff" stroke-width="3" stroke-linejoin="round"/></svg>`;
+          host.appendChild(el); this.arrows.set(v.id, el);
+        }
+        seen.add(v.id);
+        v3.set(v.root.position.x, 0.5, v.root.position.z).project(this.camera);
+        let sx = (v3.x * 0.5 + 0.5) * w, sy = (-v3.y * 0.5 + 0.5) * h;
+        const behind = v3.z > 1;
+        const onScreen = !behind && sx > mx && sx < w - mx && sy > top && sy < bottom;
+        if (onScreen) { el.style.display = 'none'; continue; }
+        const cx = w / 2, cy = (top + bottom) / 2;
+        let dx = sx - cx, dy = sy - cy;
+        if (behind) { dx = -dx; dy = -dy; }
+        if (Math.abs(dx) < 1e-3 && Math.abs(dy) < 1e-3) dy = 1;
+        const hw = Math.max(20, w / 2 - mx), hh = Math.max(20, (bottom - top) / 2 - 10);
+        const t = Math.min(hw / Math.abs(dx || 1e-6), hh / Math.abs(dy || 1e-6));
+        const ax = cx + dx * t, ay = cy + dy * t;
+        const ang = Math.atan2(dy, dx) + Math.PI / 2;
+        el.style.display = 'block';
+        el.style.transform = `translate(${ax}px, ${ay}px) rotate(${ang}rad)`;
+      }
+    }
+    for (const [id, el] of this.arrows) {
+      if (!seen.has(id)) { el.style.display = 'none'; if (!this.players.has(id)) { el.remove(); this.arrows.delete(id); } }
+    }
   }
 
   dispose() {
@@ -2591,7 +2681,7 @@ function easeOutBack(t) { const c1 = 1.70158, c3 = c1 + 1; return 1 + c3 * Math.
 const $ = (id) => document.getElementById(id);
 // The single-file (serverless) build provides window.BB_P2P; the Node server build leaves it undefined.
 const transport = window.BB_P2P || null;
-const BUILD = 'build 3';
+const BUILD = 'build 4';
 
 // ---------------------------------------------------------------- settings
 const SETTINGS_KEY = 'bb3d.settings';
@@ -2819,7 +2909,8 @@ function beginSession(mode, ev, data, code) {
   S.pending = true; $('btn-create').disabled = true; $('btn-join').disabled = true; menuError('');
   if (!transport) { emitAck(ev, data, afterJoin); return; }
   clearSession();
-  menuError(''); setStatus('wait', mode === 'create' ? 'Opening room…' : 'Connecting to host…');
+  transport.onStatus = (t) => setStatus('wait', t);
+  menuError(''); setStatus('wait', mode === 'create' ? 'Opening room…' : 'Contacting matchmaking service…');
   transport.prepare(mode, code).then(() => emitAck(ev, data, (res) => {
     if (!res.ok) transport.shutdown(true);
     afterJoin(res);
