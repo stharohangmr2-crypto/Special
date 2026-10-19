@@ -1,300 +1,3087 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Chess Online</title>
-<style>
-:root{--bg:#f6f4ee;--card:#fff;--ink:#1d1c1a;--mut:#77736a;--acc:#4f46e5;--accT:#fff;--line:#e4e0d6;--lt:#eeeed2;--dk:#769656;--sel:#f6f669;--bad:#dc2626;--hint:#3b82f6;--sq:min(calc((100vw - 32px)/8),56px)}
-@media (prefers-color-scheme:dark){:root{--bg:#141413;--card:#201f1d;--ink:#f1efe8;--mut:#9a958a;--acc:#818cf8;--accT:#11101a;--line:#34322e}}
-*{box-sizing:border-box}
-html,body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
-main{max-width:480px;margin:0 auto;padding:16px 16px 40px}
-h1{font-size:24px;margin:6px 0 2px}
-.sub{color:var(--mut);margin:0 0 16px;font-size:14px}
-.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:12px}
-label{font-size:12px;color:var(--mut);display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:.06em}
-input{width:100%;font:inherit;font-size:17px;padding:12px 14px;border-radius:12px;border:1px solid var(--line);background:var(--bg);color:var(--ink);outline:none}
-button{font:inherit;font-weight:600;padding:12px 14px;border-radius:12px;border:0;background:var(--acc);color:var(--accT);cursor:pointer;width:100%}
-button.alt{background:transparent;color:var(--ink);border:1px solid var(--line)}
-button.sm{padding:9px 4px;font-size:13px}
-button:disabled{opacity:.45}
-.row{display:flex;gap:8px;margin-bottom:8px}.row>*{flex:1}
-.gap{height:10px}
-.code{font-size:38px;font-weight:800;letter-spacing:.18em;text-align:center;text-transform:uppercase}
-.err{color:var(--bad);font-size:14px;text-align:center;margin-top:8px}
-.mut{color:var(--mut);font-size:13px;text-align:center;margin:6px 0}
-.bar{display:flex;justify-content:space-between;align-items:center;margin:6px 0;font-weight:600;font-size:14px;min-height:24px}
-.bar small{font-weight:400;color:var(--mut);letter-spacing:1px}
-.dot{display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--acc);margin-right:6px}
-#bd{display:grid;grid-template-columns:repeat(8,var(--sq));grid-template-rows:repeat(8,var(--sq));width:calc(var(--sq)*8);margin:0 auto;border-radius:6px;overflow:hidden;user-select:none;-webkit-user-select:none}
-.s{position:relative;display:flex;align-items:center;justify-content:center;font-size:calc(var(--sq)*.78);line-height:1;cursor:pointer}
-.l{background:var(--lt)}.d{background:var(--dk)}
-.s.last{box-shadow:inset 0 0 0 100px rgba(255,235,59,.38)}
-.s.sel{box-shadow:inset 0 0 0 100px rgba(246,246,105,.75)}
-.s.chk{box-shadow:inset 0 0 0 100px rgba(220,38,38,.55)}
-.s.hn{box-shadow:inset 0 0 0 calc(var(--sq)*.09) var(--hint)}
-.s.mv::after{content:"";position:absolute;width:30%;height:30%;border-radius:50%;background:rgba(0,0,0,.25)}
-.s.cp::after{width:90%;height:90%;background:none;border:calc(var(--sq)*.08) solid rgba(0,0,0,.3)}
-.w{color:#fff;text-shadow:0 0 2px #000,0 0 2px #000,0 0 1px #000}
-.b{color:#1a1a1a;text-shadow:0 0 1px rgba(255,255,255,.4)}
-.co{position:absolute;left:2px;top:1px;font-size:calc(var(--sq)*.2);color:var(--mut);font-weight:700}
-.promo{display:flex;gap:8px;justify-content:center;margin:10px 0}
-.promo button{width:auto;font-size:30px;padding:6px 14px;background:var(--card);color:var(--ink);border:1px solid var(--line)}
-#ml{max-height:90px;overflow-y:auto;font-size:13px;line-height:1.6;word-spacing:3px}
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#10303a">
+  <title>Banana Blast 3D</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ctext y='52' font-size='52'%3E%F0%9F%8D%8C%3C/text%3E%3C/svg%3E">
+  <style>
+:root {
+  --ink: #10303a;
+  --ink-2: #184552;
+  --banana: #ffd43b;
+  --banana-dark: #c99a00;
+  --orange: #ff7a3d;
+  --mint: #7be0ad;
+  --cream: #fff6dc;
+  --white: #ffffff;
+  --danger: #ff4d4d;
+  --font: "Trebuchet MS", "Avenir Next Rounded", "Arial Rounded MT Bold", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --safe-t: env(safe-area-inset-top, 0px);
+  --safe-b: env(safe-area-inset-bottom, 0px);
+  --safe-l: env(safe-area-inset-left, 0px);
+  --safe-r: env(safe-area-inset-right, 0px);
+}
+
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { margin: 0; height: 100%; background: var(--ink); color: var(--cream); font-family: var(--font); overflow: hidden; overscroll-behavior: none; }
+body { -webkit-text-size-adjust: 100%; }
+#app { position: fixed; inset: 0; }
+[hidden] { display: none !important; }
+
+.screen { position: absolute; inset: 0; display: none; overflow-y: auto; padding: calc(var(--safe-t) + 16px) calc(var(--safe-r) + 16px) calc(var(--safe-b) + 16px) calc(var(--safe-l) + 16px); }
+.screen.active { display: flex; }
+#screen-menu, #screen-lobby, #screen-results {
+  align-items: center; justify-content: center;
+  background:
+    radial-gradient(120% 80% at 50% 0%, #1f6a5a 0%, rgba(31, 106, 90, 0) 60%),
+    repeating-linear-gradient(45deg, #10303a 0 28px, #123743 28px 56px);
+}
+
+.menu-card, .lobby-card, .results-card, .modal-card {
+  width: min(420px, 100%); background: var(--cream); color: var(--ink);
+  border-radius: 22px; padding: 22px 20px; box-shadow: 0 8px 0 rgba(0, 0, 0, 0.28), 0 18px 40px rgba(0, 0, 0, 0.35);
+  display: flex; flex-direction: column; gap: 12px;
+}
+.logo-banana { width: 84px; height: auto; align-self: center; margin-bottom: -4px; transform: rotate(-8deg); }
+.logo { font-size: clamp(30px, 9vw, 42px); line-height: 1; margin: 0; text-align: center; letter-spacing: -0.5px; color: var(--ink); text-shadow: 0 3px 0 var(--banana); }
+.logo span { color: var(--orange); }
+.tagline { margin: 0 0 6px; text-align: center; color: #3c5b64; }
+.small { margin: 0; font-size: 14px; color: #3c5b64; text-align: center; }
+.hint { margin: 0; font-size: 15px; text-align: center; color: #3c5b64; min-height: 1.3em; }
+
+.field { display: flex; flex-direction: column; gap: 6px; font-size: 15px; font-weight: 700; }
+input[type="text"], select {
+  font: inherit; font-size: 18px; padding: 12px 14px; border-radius: 14px; border: 3px solid var(--ink);
+  background: var(--white); color: var(--ink); width: 100%; min-width: 0;
+}
+input[type="text"]:focus-visible, select:focus-visible, .btn:focus-visible, .link-btn:focus-visible, .act:focus-visible {
+  outline: 4px solid var(--orange); outline-offset: 2px;
+}
+#code-input { text-transform: uppercase; text-align: center; letter-spacing: 6px; font-weight: 800; flex: 1 1 40%; }
+.join-row { display: flex; gap: 10px; }
+.join-row .btn { flex: 1 1 50%; }
+
+.btn {
+  font: inherit; font-size: 18px; font-weight: 800; border: 3px solid var(--ink); border-radius: 16px;
+  padding: 13px 16px; cursor: pointer; color: var(--ink); background: var(--white);
+  box-shadow: 0 5px 0 var(--ink); transition: transform 0.06s, box-shadow 0.06s; touch-action: manipulation; min-height: 48px;
+}
+.btn:active { transform: translateY(4px); box-shadow: 0 1px 0 var(--ink); }
+.btn[disabled] { opacity: 0.5; cursor: not-allowed; }
+.btn-primary { background: var(--banana); }
+.btn-secondary { background: var(--mint); }
+.btn-accent { background: var(--orange); color: var(--white); text-shadow: 0 2px 0 rgba(0, 0, 0, 0.25); }
+.btn-ghost { background: transparent; box-shadow: none; border-color: transparent; text-decoration: underline; }
+.btn-ghost:active { transform: none; }
+.btn-small { font-size: 15px; padding: 9px 12px; min-height: 40px; flex: 1; }
+.btn-icon { font-size: 14px; padding: 8px 12px; min-height: 40px; background: rgba(255, 246, 220, 0.92); }
+
+.or { display: flex; align-items: center; gap: 10px; color: #3c5b64; font-size: 14px; }
+.or::before, .or::after { content: ""; flex: 1; height: 3px; background: rgba(16, 48, 58, 0.15); border-radius: 2px; }
+.menu-links { display: flex; justify-content: center; gap: 18px; }
+.link-btn { font: inherit; font-weight: 700; background: none; border: none; color: var(--ink); text-decoration: underline; padding: 10px 6px; cursor: pointer; min-height: 44px; }
+
+.status { display: flex; align-items: center; justify-content: center; gap: 8px; margin: 0; font-size: 14px; color: #3c5b64; }
+.dot { width: 10px; height: 10px; border-radius: 50%; background: #aaa; display: inline-block; }
+.status.ok .dot, .hud-net.ok .dot { background: #2fbf71; }
+.status.bad .dot, .hud-net.bad .dot { background: var(--danger); }
+.status.wait .dot, .hud-net.wait .dot { background: #f0a500; }
+.form-error { margin: 0; padding: 10px 12px; border-radius: 12px; background: #ffe0dc; color: #8a1f12; font-weight: 700; font-size: 15px; }
+
+.row { display: flex; gap: 10px; }
+.row-stack { flex-direction: column; }
+.code-big { text-align: center; font-size: clamp(44px, 14vw, 64px); font-weight: 900; letter-spacing: 10px; padding-left: 10px; color: var(--ink); text-shadow: 0 4px 0 var(--banana); user-select: all; }
+.lobby-count { margin: 4px 0 0; font-size: 18px; text-align: center; }
+.player-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px; }
+.player-list li { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border: 3px solid var(--ink); border-radius: 14px; background: var(--white); font-weight: 800; }
+.player-list .swatch { width: 22px; height: 22px; border-radius: 50%; border: 3px solid var(--ink); flex: none; }
+.player-list .name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.player-list .tag { font-size: 13px; padding: 3px 8px; border-radius: 999px; background: #e7efe9; }
+.player-list .tag.ready { background: var(--mint); }
+.player-list .tag.host { background: var(--banana); }
+.player-list .tag.off { background: #ffd0cc; }
+.player-list li.me { box-shadow: 0 0 0 4px var(--orange); }
+
+/* ---------- game ---------- */
+#screen-game { padding: 0; overflow: hidden; background: #0c2a33; touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+#gl { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; }
+.hud { position: absolute; inset: 0; pointer-events: none; padding: calc(var(--safe-t) + 8px) calc(var(--safe-r) + 10px) 0 calc(var(--safe-l) + 10px); }
+.hud-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+.hud-players { display: flex; flex-direction: column; gap: 4px; flex: 1 1 0; min-width: 0; }
+.hud-chip { display: inline-flex; align-items: center; gap: 6px; max-width: 100%; padding: 3px 9px 3px 4px; border-radius: 999px; background: rgba(16, 48, 58, 0.78); font-size: 13px; font-weight: 800; color: var(--cream); width: fit-content; }
+.hud-chip i { width: 16px; height: 16px; border-radius: 50%; border: 2px solid #fff; flex: none; }
+.hud-chip span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 14ch; }
+.hud-chip.dead { opacity: 0.45; text-decoration: line-through; }
+.hud-chip.off span::after { content: " (offline)"; font-weight: 600; }
+.hud-center { text-align: center; flex: none; }
+.hud-timer { font-size: 26px; font-weight: 900; padding: 2px 14px; border-radius: 14px; background: rgba(16, 48, 58, 0.82); color: var(--banana); font-variant-numeric: tabular-nums; }
+.hud-timer.low { color: var(--danger); }
+.hud-alive { margin-top: 3px; font-size: 13px; font-weight: 800; text-shadow: 0 1px 3px #000; }
+.hud-right { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; flex: 1 1 0; pointer-events: auto; }
+.hud-net { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; padding: 3px 8px; border-radius: 999px; background: rgba(16, 48, 58, 0.78); }
+.hud-stats { position: absolute; left: calc(var(--safe-l) + 10px); top: calc(var(--safe-t) + 100px); display: flex; flex-wrap: wrap; gap: 5px; max-width: 46vw; }
+.chip { font-size: 13px; font-weight: 800; padding: 3px 9px; border-radius: 999px; background: rgba(16, 48, 58, 0.78); color: var(--cream); }
+.effects { display: contents; }
+.chip.fx { background: rgba(255, 212, 59, 0.92); color: var(--ink); }
+.spectate { position: absolute; left: 50%; bottom: calc(var(--safe-b) + 18px); transform: translateX(-50%); padding: 8px 16px; border-radius: 999px; background: rgba(16, 48, 58, 0.85); font-weight: 800; }
+
+.overlay-center { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; text-align: center; pointer-events: none; font-size: clamp(56px, 20vw, 130px); font-weight: 900; color: var(--banana); text-shadow: 0 6px 0 var(--ink), 0 0 24px rgba(0, 0, 0, 0.5); padding: 20px; line-height: 1; }
+.overlay-center.small-text { font-size: clamp(34px, 10vw, 64px); }
+.banner { position: absolute; left: 50%; top: calc(var(--safe-t) + 120px); transform: translateX(-50%); max-width: 88vw; padding: 8px 16px; border-radius: 14px; background: rgba(255, 246, 220, 0.96); color: var(--ink); font-weight: 800; text-align: center; pointer-events: none; }
+
+.controls { position: absolute; inset: 0; pointer-events: none; }
+.joy-zone { position: absolute; left: 0; bottom: 0; width: 55%; height: 60%; pointer-events: auto; touch-action: none; }
+.joy-hint { position: absolute; left: calc(var(--safe-l) + 24px); bottom: calc(var(--safe-b) + 30px); font-size: 13px; font-weight: 700; opacity: 0.55; pointer-events: none; }
+.joy-base { position: absolute; width: 130px; height: 130px; margin: -65px 0 0 -65px; border-radius: 50%; background: rgba(255, 246, 220, 0.22); border: 4px solid rgba(255, 246, 220, 0.55); pointer-events: none; }
+.joy-knob { position: absolute; left: 50%; top: 50%; width: 58px; height: 58px; margin: -29px 0 0 -29px; border-radius: 50%; background: var(--banana); border: 4px solid var(--ink); box-shadow: 0 4px 0 rgba(0, 0, 0, 0.3); }
+.buttons { position: absolute; right: calc(var(--safe-r) + 16px); bottom: calc(var(--safe-b) + 22px); display: flex; flex-direction: column-reverse; align-items: flex-end; gap: 14px; pointer-events: none; }
+.act { pointer-events: auto; touch-action: none; font: inherit; font-weight: 900; border-radius: 50%; border: 5px solid var(--ink); color: var(--ink); box-shadow: 0 6px 0 rgba(0, 0, 0, 0.35); user-select: none; -webkit-user-select: none; }
+.act-bomb { width: 96px; height: 96px; font-size: 20px; background: var(--orange); color: #fff; text-shadow: 0 2px 0 rgba(0, 0, 0, 0.3); }
+.act-det { width: 70px; height: 70px; font-size: 15px; background: #ff4d4d; color: #fff; }
+.act-trap { width: 70px; height: 70px; font-size: 15px; background: var(--banana); }
+.act.active { transform: translateY(4px) scale(0.96); box-shadow: 0 2px 0 rgba(0, 0, 0, 0.35); }
+.controls.off { display: none; }
+@media (hover: hover) and (pointer: fine) {
+  .joy-hint { display: none; }
+}
+@media (orientation: landscape) and (max-height: 520px) {
+  .hud-stats { top: calc(var(--safe-t) + 78px); }
+  .act-bomb { width: 84px; height: 84px; }
+  .buttons { flex-direction: row-reverse; align-items: flex-end; }
+  .banner { top: calc(var(--safe-t) + 70px); }
+  .hud-timer { font-size: 22px; }
+}
+
+/* ---------- results ---------- */
+.result-title { margin: 0; text-align: center; font-size: clamp(28px, 8vw, 38px); }
+.result-list { list-style: none; counter-reset: rank; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px; }
+.result-list li { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border: 3px solid var(--ink); border-radius: 14px; background: var(--white); font-weight: 800; }
+.result-list li.win { background: var(--banana); }
+.result-list .rank { width: 28px; font-size: 20px; text-align: center; }
+.result-list .swatch { width: 20px; height: 20px; border-radius: 50%; border: 3px solid var(--ink); flex: none; }
+.result-list .name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.result-list .meta { font-size: 13px; font-weight: 700; color: #3c5b64; }
+
+/* ---------- modals / toast ---------- */
+.modal { position: absolute; inset: 0; z-index: 50; display: flex; align-items: center; justify-content: center; padding: calc(var(--safe-t) + 14px) 14px calc(var(--safe-b) + 14px); background: rgba(8, 24, 30, 0.7); overflow-y: auto; }
+.modal-card { max-height: 100%; overflow-y: auto; }
+.modal-card h2 { margin: 0; text-align: center; }
+.howto { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 8px; font-size: 15px; line-height: 1.35; }
+.toggle { display: flex; align-items: center; gap: 12px; font-weight: 700; font-size: 16px; min-height: 44px; }
+.toggle input { width: 26px; height: 26px; accent-color: var(--orange); flex: none; }
+.toast { position: absolute; left: 50%; bottom: calc(var(--safe-b) + 110px); transform: translateX(-50%); z-index: 70; max-width: 90vw; padding: 10px 16px; border-radius: 14px; background: var(--ink); color: var(--cream); border: 3px solid var(--banana); font-weight: 800; text-align: center; }
+.toast.bad { border-color: var(--danger); }
+.conn-banner { position: absolute; left: 0; right: 0; top: 0; z-index: 80; padding: calc(var(--safe-t) + 8px) 12px 8px; text-align: center; background: #b3261e; color: #fff; font-weight: 800; }
+.fatal { position: absolute; inset: 0; z-index: 90; display: flex; align-items: center; justify-content: center; padding: 24px; text-align: center; background: var(--ink); font-size: 18px; font-weight: 700; }
+
+@media (prefers-reduced-motion: reduce) {
+  .btn { transition: none; }
+}
+body.reduce-motion .btn { transition: none; }
+
 </style>
+  <script type="importmap">{ "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js" } }</script>
 </head>
 <body>
-<main id="app"></main>
-<script id="eng" type="text/plain">
-var PV=[0,100,320,330,500,900,0],N8=[-33,-31,-18,-14,14,18,31,33],K8=[-17,-16,-15,-1,1,15,16,17],B4=[-17,-15,15,17],R4=[-16,-1,1,16],MATE=100000;
-var CRM=new Int8Array(128).fill(15);CRM[116]=12;CRM[119]=14;CRM[112]=13;CRM[4]=3;CRM[7]=11;CRM[0]=7;
-function newSt(){var b=new Int8Array(128),k=[4,2,3,5,6,3,2,4];for(var f=0;f<8;f++){b[f]=-k[f];b[16+f]=-1;b[96+f]=1;b[112+f]=k[f]}
-return {b:b,turn:1,cr:15,ep:-1,half:0,ksq:[116,4],sp:0,uc:[],uf:[],ucr:[],uep:[],uh:[]}}
-function mkSt(d){var st=newSt();st.b.set(d.b);st.turn=d.turn;st.cr=d.cr;st.ep=d.ep;st.half=d.half;st.ksq=d.ksq;return st}
-function attacked(b,q,by){var s,i,o,v;
-if(by===1){s=q+15;if(!(s&136)&&b[s]===1)return true;s=q+17;if(!(s&136)&&b[s]===1)return true}
-else{s=q-15;if(!(s&136)&&b[s]===-1)return true;s=q-17;if(!(s&136)&&b[s]===-1)return true}
-for(i=0;i<8;i++){s=q+N8[i];if(!(s&136)&&b[s]===by*2)return true;s=q+K8[i];if(!(s&136)&&b[s]===by*6)return true}
-for(i=0;i<4;i++){o=B4[i];for(s=q+o;!(s&136);s+=o){v=b[s];if(v){if(v===by*3||v===by*5)return true;break}}
-o=R4[i];for(s=q+o;!(s&136);s+=o){v=b[s];if(v){if(v===by*4||v===by*5)return true;break}}}
-return false}
-function gen(st,caps){var b=st.b,us=st.turn,mv=[],s,v,pt,t,i,k,o,fw,sr,pr,L,D,h,e;
-for(s=0;s<120;s++){if(s&136){s+=7;continue}v=b[s];if(!v||v*us<0)continue;pt=v<0?-v:v;
-if(pt===1){fw=us===1?-16:16;sr=us===1?6:1;pr=us===1?0:7;t=s+fw;
-if(!(t&136)&&!b[t]){if((t>>4)===pr){for(k=5;k>1;k--)mv.push(s|t<<7|k<<14)}else if(!caps){mv.push(s|t<<7);if((s>>4)===sr&&!b[t+fw])mv.push(s|(t+fw)<<7)}}
-for(i=-1;i<2;i+=2){t=s+fw+i;if(t&136)continue;if(b[t]*us<0||t===st.ep){if((t>>4)===pr){for(k=5;k>1;k--)mv.push(s|t<<7|k<<14)}else mv.push(s|t<<7)}}}
-else if(pt===2||pt===6){L=pt===2?N8:K8;for(i=0;i<8;i++){t=s+L[i];if(t&136||b[t]*us>0)continue;if(caps&&!b[t])continue;mv.push(s|t<<7)}
-if(pt===6&&!caps){h=us===1?112:0;e=h+4;if(s===e&&!attacked(b,e,-us)){
-if((st.cr&(us===1?1:4))&&b[h+7]===us*4&&!b[h+5]&&!b[h+6]&&!attacked(b,h+5,-us)&&!attacked(b,h+6,-us))mv.push(s|(h+6)<<7);
-if((st.cr&(us===1?2:8))&&b[h]===us*4&&!b[h+1]&&!b[h+2]&&!b[h+3]&&!attacked(b,h+3,-us)&&!attacked(b,h+2,-us))mv.push(s|(h+2)<<7)}}}
-else{D=pt===3?B4:pt===4?R4:K8;for(i=0;i<D.length;i++){o=D[i];for(t=s+o;!(t&136);t+=o){if(b[t]*us>0)break;if(b[t]){mv.push(s|t<<7);break}if(!caps)mv.push(s|t<<7)}}}}
-return mv}
-function make(st,m){var b=st.b,f=m&127,t=m>>7&127,pr=m>>14,v=b[f],us=st.turn,pt=v<0?-v:v,cap=b[t],i=st.sp++,ep=0,cs;
-if(pt===1&&!cap&&(f&15)!==(t&15)){ep=1;cs=t+(us===1?16:-16);cap=b[cs];b[cs]=0}
-st.uc[i]=cap;st.uf[i]=ep;st.ucr[i]=st.cr;st.uep[i]=st.ep;st.uh[i]=st.half;
-b[t]=pr?us*pr:v;b[f]=0;
-if(pt===6){st.ksq[us===1?0:1]=t;if(t-f===2){b[f+1]=b[f+3];b[f+3]=0}else if(f-t===2){b[f-1]=b[f-4];b[f-4]=0}}
-st.cr&=CRM[f]&CRM[t];st.ep=(pt===1&&(t-f===32||f-t===32))?(f+t)>>1:-1;
-st.half=(pt===1||cap)?0:st.half+1;st.turn=-us}
-function unmake(st,m){var b=st.b,i=--st.sp,f=m&127,t=m>>7&127,pr=m>>14,us=-st.turn,mv=pr?us:b[t],pt=mv<0?-mv:mv;
-st.turn=us;b[f]=mv;
-if(st.uf[i]){b[t]=0;b[t+(us===1?16:-16)]=st.uc[i]}else b[t]=st.uc[i];
-if(pt===6){st.ksq[us===1?0:1]=f;if(t-f===2){b[f+3]=b[f+1];b[f+1]=0}else if(f-t===2){b[f-4]=b[f-1];b[f-1]=0}}
-st.cr=st.ucr[i];st.ep=st.uep[i];st.half=st.uh[i]}
-function inChk(st){return attacked(st.b,st.ksq[st.turn===1?0:1],-st.turn)}
-function legal(st){var a=gen(st),r=[],us=st.turn,i,m;for(i=0;i<a.length;i++){m=a[i];make(st,m);if(!attacked(st.b,st.ksq[us===1?0:1],-us))r.push(m);unmake(st,m)}return r}
-function evalS(st){var b=st.b,s=0,i,v,pt,c,r,f,d,x,np=0,bw=0,bb=0,adv;
-for(i=0;i<120;i++){if(i&136){i+=7;continue}v=b[i];if(v&&v!==6&&v!==-6){pt=v<0?-v:v;if(pt>1)np+=PV[pt]}}
-for(i=0;i<120;i++){if(i&136){i+=7;continue}v=b[i];if(!v)continue;pt=v<0?-v:v;c=v>0?1:-1;r=i>>4;f=i&7;d=Math.min(f,7-f)+Math.min(r,7-r);adv=c===1?7-r:r;x=PV[pt];
-if(pt===1)x+=adv*adv*2+d*3+((f===3||f===4)&&adv>1?8:0);
-else if(pt===2)x+=d*10;
-else if(pt===3){x+=d*5;if(c===1)bw++;else bb++}
-else if(pt===4)x+=(adv===6?22:0)+(d>2?4:0);
-else if(pt===5)x+=d*2;
-else x+=np<2600?d*12:(adv===0?18:-adv*14)+((f<3||f>5)?16:0);
-s+=c*x}
-if(bw>1)s+=30;if(bb>1)s-=30;
-return s*st.turn}
-var nodes,deadline,stop;
-function order(st,mv){var b=st.b,sc=mv.map(function(m){var c=b[m>>7&127],p=b[m&127];c=c<0?-c:c;p=p<0?-p:p;return(c?PV[c]*10-p:0)+((m>>14)?PV[m>>14]:0)}),idx=mv.map(function(_,i){return i});idx.sort(function(a,c){return sc[c]-sc[a]});return idx.map(function(i){return mv[i]})}
-function qs(st,al,be){if((nodes++&1023)===0&&Date.now()>deadline)stop=1;if(stop)return 0;
-var sp=evalS(st),mv,us=st.turn,i,m,sc;if(sp>=be)return sp;if(sp>al)al=sp;mv=order(st,gen(st,1));
-for(i=0;i<mv.length;i++){m=mv[i];make(st,m);if(attacked(st.b,st.ksq[us===1?0:1],-us)){unmake(st,m);continue}sc=-qs(st,-be,-al);unmake(st,m);if(stop)return 0;if(sc>=be)return sc;if(sc>al)al=sc}
-return al}
-function search(st,d,al,be,ply){if((nodes++&1023)===0&&Date.now()>deadline)stop=1;if(stop)return 0;
-var us=st.turn,ck=inChk(st),mv,n=0,best=-MATE,i,m,sc;if(ck)d++;if(d<=0)return qs(st,al,be);
-mv=order(st,gen(st));
-for(i=0;i<mv.length;i++){m=mv[i];make(st,m);if(attacked(st.b,st.ksq[us===1?0:1],-us)){unmake(st,m);continue}n++;
-sc=-search(st,d-1,-be,-al,ply+1);unmake(st,m);if(stop)return 0;
-if(sc>best){best=sc;if(sc>al){al=sc;if(al>=be)break}}}
-if(!n)return ck?-MATE+ply:0;return best}
-function best(st,ms,maxD){var root=order(st,legal(st)),res=null,d,al,bs,cur,i,m,sc,j;
-if(!root.length)return null;if(root.length===1)return{m:root[0],s:0,d:0};
-deadline=Date.now()+ms;stop=0;nodes=0;res={m:root[0],s:0,d:0};
-for(d=1;d<=maxD;d++){al=-MATE;bs=-MATE;cur=null;
-for(i=0;i<root.length;i++){m=root[i];make(st,m);sc=-search(st,d-1,-MATE,-al,1);unmake(st,m);if(stop)break;
-if(sc>bs||!cur){bs=sc;cur=m}if(sc>al)al=sc}
-if(stop)break;res={m:cur,s:bs,d:d};j=root.indexOf(cur);root.splice(j,1);root.unshift(cur);
-if(bs>MATE-100||bs<-MATE+100)break}
-return res}
-</script>
-<script>
-(function(){
-var CH="abcdefghjkmnpqrstuvwxyz23456789",NTFY="https://ntfy.sh",TP="wcchess1-";
-var app=document.getElementById("app"),ENG=document.getElementById("eng").textContent;
-(0,eval)(ENG);
-var cid=Math.random().toString(36).slice(2,10),es=null,topic="",isHost=false,code="",G=null,view="home",msg="",name="",gid=null,gt=null,gno=0,worker=null,busy=false,sel=null,dests=[],promoQ=null,hint=null,note="",auto=false,autoT=null;
-try{name=localStorage.getItem("ch_name")||""}catch(e){}
-var GL=[0,0x265F,0x265E,0x265D,0x265C,0x265B,0x265A].map(function(c){return c?String.fromCharCode(c,0xFE0E):""});
-function el(t,c,x){var e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e}
-function btn(t,c,f){var b=el("button",c,t);b.onclick=f;return b}
-function rc(){var s="";for(var i=0;i<5;i++)s+=CH[Math.floor(Math.random()*CH.length)];return s}
-function clean(n){return String(n||"").replace(/[^\w \-]/g,"").trim().slice(0,14)}
-function isR(){return name.toLowerCase()==="rohan"}
-function sq2s(s){return"abcdefgh"[s&7]+(8-(s>>4))}
-function uci(m){return sq2s(m&127)+sq2s(m>>7&127)+((m>>14)?"  nbrq"[m>>14]:"")}
-function fromUci(u){for(var i=0;i<G.legal.length;i++)if(uci(G.legal[i])===u)return G.legal[i];return 0}
-function san(st,m,L){var b=st.b,f=m&127,t=m>>7&127,pr=m>>14,v=b[f],pt=v<0?-v:v,cap=b[t]||(pt===1&&(f&15)!==(t&15)),s,i,o,sf=0,sr=0,amb=0,x;
-if(pt===6&&(t-f===2||f-t===2))return t>f?"O-O":"O-O-O";
-if(pt===1)s=cap?"abcdefgh"[f&7]:"";
-else{s="  NBRQK"[pt];
-for(i=0;i<L.length;i++){o=L[i];x=b[o&127];if(o!==m&&(o>>7&127)===t&&x===v){amb=1;if((o&7)===(f&7))sf=1;if((o>>4&7)===(f>>4))sr=1}}
-if(amb){if(!sf)s+="abcdefgh"[f&7];else if(!sr)s+=8-(f>>4);else s+="abcdefgh"[f&7]+(8-(f>>4))}}
-return s+(cap?"x":"")+sq2s(t)+(pr?"="+"  NBRQ"[pr]:"")}
-function insuff(st){var b=st.b,i,v,pt,mn=[];for(i=0;i<120;i++){if(i&136){i+=7;continue}v=b[i];if(!v)continue;pt=v<0?-v:v;if(pt===1||pt===4||pt===5)return false;if(pt===2||pt===3)mn.push([pt,((i>>4)+(i&7))&1])}
-if(mn.length<2)return true;
-return mn.every(function(x){return x[0]===3&&x[1]===mn[0][1]})}
-function key(st,L){var ep=-1;if(st.ep>=0&&L.some(function(m){return(m>>7&127)===st.ep&&Math.abs(st.b[m&127])===1}))ep=st.ep;return Array.prototype.join.call(st.b,",")+"|"+st.turn+st.cr+ep}
-function mkGame(no,me,opp,moves){
-G={no:no,me:me,opp:opp,st:newSt(),moves:[],sans:[],keys:[],caps:{"1":[],"-1":[]},res:null,hints:3,drawOffer:null,rm:[false,false],last:0,legal:null};
-G.legal=legal(G.st);G.keys.push(key(G.st,G.legal));sel=null;hint=null;note="";promoQ=null;dests=[];
-(moves||[]).forEach(function(u){var m=fromUci(u);if(m&&!G.res)doMove(m)})}
-function doMove(m){var st=G.st,us=st.turn,s=san(st,m,G.legal),cap,ck,last;
-make(st,m);cap=st.uc[st.sp-1];if(cap)G.caps[us].push(Math.abs(cap));
-G.moves.push(m);G.legal=legal(st);ck=inChk(st);if(ck)s+=G.legal.length?"+":"#";G.sans.push(s);G.last=m;G.keys.push(key(st,G.legal));last=G.keys[G.keys.length-1];
-if(!G.legal.length)G.res=ck?{w:us,t:"Checkmate"}:{w:0,t:"Stalemate"};
-else if(st.half>=100)G.res={w:0,t:"Draw by the 50-move rule"};
-else if(insuff(st))G.res={w:0,t:"Draw: not enough material"};
-else if(G.keys.filter(function(k){return k===last}).length>=3)G.res={w:0,t:"Draw by repetition"};
-G.drawOffer=null;sel=null;hint=null;dests=[];promoQ=null}
-function resText(){var r=G.res;return r.w===0?r.t:(r.w===G.me?"You win — ":"You lose — ")+r.t}
+<div id="app">
 
-/* ---------- screens ---------- */
-function render(){
-app.textContent="";app.appendChild(el("h1",null,"♞ Chess Online"));
-if(view==="home")return home();
-if(!G){app.appendChild(el("p","sub",isHost?"Waiting for your opponent…":msg||"Joining room…"));
-if(isHost){var c=el("div","card");c.appendChild(el("label",null,"Room code — share it with your friend"));c.appendChild(el("div","code",code));app.appendChild(c)}
-app.appendChild(btn("Cancel","alt",leave));return}
-game()}
-function home(){
-app.appendChild(el("p","sub","Play chess with a friend online. Enter your name to begin."));
-var c=el("div","card"),i=el("input");i.value=name;i.maxLength=14;i.placeholder="Your name";i.oninput=function(){name=clean(i.value);try{localStorage.setItem("ch_name",name)}catch(e){}};
-c.append(el("label",null,"Your name"),i);app.appendChild(c);
-var c2=el("div","card");
-function need(){name=clean(i.value);if(!name){msg="Please enter your name first.";render();return false}return true}
-c2.appendChild(btn("Create a room","",function(){if(need())hostRoom()}));
-c2.appendChild(el("div","gap"));
-var r=el("div","row"),ci=el("input");ci.placeholder="CODE";ci.maxLength=5;ci.style.textTransform="uppercase";
-var jb=btn("Join room","alt",function(){var v=ci.value.trim().toLowerCase();if(!need())return;if(v.length<5){msg="Enter the 5-character room code.";render();return}joinRoom(v)});
-jb.style.flex="0 0 110px";r.append(ci,jb);c2.append(el("label",null,"Have a code? Join a room"),r);app.appendChild(c2);
-if(msg)app.appendChild(el("div","err",msg))}
-function game(){
-var mine=G.st.turn===G.me,over=!!G.res,ck=inChk(G.st),opp=-G.me;
-function pbar(color,nm){var b=el("div","bar"),l=el("span");if(!over&&G.st.turn===color)l.appendChild(el("span","dot"));l.appendChild(document.createTextNode(nm));
-var cp=G.caps[color].slice().sort(function(a,c){return c-a}).map(function(p){return GL[p]}).join("");b.append(l,el("small",null,cp));return b}
-app.appendChild(pbar(opp,G.opp+(opp===1?" (White)":" (Black)")));
-var bd=el("div");bd.id="bd";var kq=G.st.ksq[G.st.turn===1?0:1],h1=hint?hint.m&127:-1,h2=hint?hint.m>>7&127:-1;
-for(var i=0;i<8;i++)for(var j=0;j<8;j++){
-var r=G.me===1?i:7-i,f=G.me===1?j:7-j,q=r*16+f,v=G.st.b[q],d=el("div","s "+(((r+f)&1)?"d":"l"));
-if(v){d.textContent=GL[v<0?-v:v];d.className+=v>0?" w":" b"}
-if(G.last&&(q===(G.last&127)||q===(G.last>>7&127)))d.className+=" last";
-if(q===sel)d.className+=" sel";
-if(ck&&q===kq)d.className+=" chk";
-if(q===h1||q===h2)d.className+=" hn";
-if(dests.indexOf(q)>=0)d.className+=v?" cp":" mv";
-if(j===0)d.appendChild(el("span","co",String(8-r)));
-(function(q){d.onclick=function(){tap(q)}})(q);
-bd.appendChild(d)}
-app.appendChild(bd);
-app.appendChild(pbar(G.me,G.me===1?"You — "+name+" (White)":"You — "+name+" (Black)"));
-if(promoQ){var pm=el("div","promo");[5,4,3,2].forEach(function(k){pm.appendChild(btn(GL[k],"",function(){var m=promoQ.filter(function(x){return x>>14===k})[0];promoQ=null;play(m)}))});app.appendChild(pm)}
-var st=over?resText():(mine?"Your move":G.opp+"’s move")+(ck?" — check!":"");
-var sc=el("div","mut",st);sc.style.fontWeight="700";sc.style.fontSize="15px";app.appendChild(sc);
-if(note)app.appendChild(el("div","mut",note));
-if(!over){
-if(G.drawOffer==="them"){app.appendChild(el("div","mut",G.opp+" offers a draw"));var rr=el("div","row");rr.append(btn("Accept draw","sm",function(){G.res={w:0,t:"Draw by agreement"};post({t:"da",no:G.no});render()}),btn("Decline","alt sm",function(){G.drawOffer=null;post({t:"dn",no:G.no});render()}));app.appendChild(rr)}
-var row=el("div","row"),hb=btn("💡 Hint ("+G.hints+")","alt sm",onHint);hb.disabled=!mine||busy||G.hints<1||!!promoQ;row.appendChild(hb);
-row.appendChild(btn("🏳 Resign","alt sm",function(){if(confirm("Resign this game?")){G.res={w:opp,t:"Resignation"};post({t:"res",no:G.no});render()}}));
-var db=btn(G.drawOffer==="me"?"Draw offered":"🤝 Draw","alt sm",function(){G.drawOffer="me";post({t:"dr",no:G.no});render()});db.disabled=G.drawOffer==="me";row.appendChild(db);
-app.appendChild(row);
-if(isR()){var rr2=el("div","row"),nb=btn(busy?"Thinking…":"⚡ Next move","sm",onNext);nb.disabled=!mine||busy||!!promoQ||auto;
-var ab=btn(auto?"⏹ Auto play: ON":"▶ Auto play",auto?"sm":"alt sm",function(){auto=!auto;if(!auto){clearTimeout(autoT);autoT=null}render()});rr2.append(nb,ab);app.appendChild(rr2);
-if(auto&&mine&&!busy&&!promoQ&&!autoT)autoT=setTimeout(function(){autoT=null;if(auto&&isR()&&G&&!G.res&&G.st.turn===G.me&&!busy&&!promoQ)onNext()},700)}
-}else{
-var rm=btn(G.rm[0]?"Waiting for opponent to accept…":G.rm[1]?"Accept rematch":"Rematch","",onRematch);rm.disabled=G.rm[0];rm.style.marginBottom="8px";app.appendChild(rm)}
-var ml=el("div","card");ml.id="ml";var t="";G.sans.forEach(function(s,k){t+=(k%2?"":(k/2+1)+". ")+s+" "});ml.textContent=t||"Moves will appear here";app.appendChild(ml);ml.scrollTop=ml.scrollHeight;
-var lb=btn("Leave game","alt sm",function(){if(G.res||confirm("Leave the game? This counts as a loss."))leave()});app.appendChild(lb)}
+  <!-- ============ MAIN MENU ============ -->
+  <section id="screen-menu" class="screen active" aria-label="Main menu">
+    <div class="menu-card">
+      <svg class="logo-banana" viewBox="0 0 120 90" aria-hidden="true">
+        <path d="M14 20 C 20 70, 80 88, 112 52 C 96 66, 56 70, 36 44 C 30 36, 28 26, 30 14 Z" fill="#ffd43b" stroke="#6b4a12" stroke-width="4" stroke-linejoin="round"/>
+        <circle cx="26" cy="12" r="6" fill="#6b4a12"/>
+        <circle cx="44" cy="52" r="3.5" fill="#1b1b2f"/><circle cx="58" cy="58" r="3.5" fill="#1b1b2f"/>
+      </svg>
+      <h1 class="logo">Banana Blast <span>3D</span></h1>
+      <p class="tagline">Blow up crates. Outlast your friends.</p>
+      <p class="small">No server: the host's phone runs the match. Host: keep this page open and on screen.</p>
 
-/* ---------- play ---------- */
-function tap(q){
-if(!G||G.res||busy||promoQ||G.st.turn!==G.me)return;
-var v=G.st.b[q];
-if(sel!==null&&dests.indexOf(q)>=0){var ms=G.legal.filter(function(m){return(m&127)===sel&&(m>>7&127)===q});
-if(ms.length>1){promoQ=ms;dests=[];render();return}play(ms[0]);return}
-if(v&&v*G.me>0){sel=q;dests=G.legal.filter(function(m){return(m&127)===q}).map(function(m){return m>>7&127});}else{sel=null;dests=[]}
-render()}
-function play(m){if(!m)return;doMove(m);note="";sendMoves();render()}
-function sendMoves(){post({t:"mv",no:G.no,m:G.moves.map(uci)})}
-function ask(ms,md,cb){var g=G,n=g.moves.length;busy=true;render();
-var st=g.st,pl={b:Array.from(st.b),turn:st.turn,cr:st.cr,ep:st.ep,half:st.half,ksq:st.ksq.slice(),ms:ms,md:md};
-function done(r){busy=false;if(G!==g||g.moves.length!==n||g.res){render();return}if(!r){render();return}cb(r)}
-try{if(!worker)worker=new Worker(URL.createObjectURL(new Blob([ENG+"\nonmessage=function(e){var d=e.data;postMessage(best(mkSt(d),d.ms,d.md))}"],{type:"text/javascript"})));
-worker.onmessage=function(e){done(e.data)};worker.onerror=function(){worker=null;setTimeout(function(){done(best(mkSt(pl),ms,Math.min(md,4)))},30)};worker.postMessage(pl)}
-catch(e){worker=null;setTimeout(function(){done(best(mkSt(pl),ms,Math.min(md,4)))},30)}}
-function fmt(s,d){if(s>MATE-200)return"Mate in "+Math.ceil((MATE-s)/2);if(s<-MATE+200)return"Mated in "+Math.ceil((MATE+s)/2);return(s>=0?"+":"")+(s/100).toFixed(1)+" · depth "+d}
-function onHint(){if(G.hints<1)return;ask(900,5,function(r){G.hints--;hint=r;sel=null;dests=[];note="Hint: "+san(G.st,r.m,G.legal)+" ("+fmt(r.s,r.d)+")";render()})}
-function onNext(){ask(3500,12,function(r){var s=san(G.st,r.m,G.legal);play(r.m);note="Next move: "+s+" · "+fmt(r.s,r.d);render()})}
-function onRematch(){if(G.rm[0])return;G.rm[0]=true;post({t:"rm",no:G.no});tryRematch();render()}
-function tryRematch(){if(isHost&&G.rm[0]&&G.rm[1]){var o=G.opp;mkGame(G.no+1,-G.me,o,[]);gno=G.no;post({t:"start",no:G.no,hc:G.me,hn:name,gid:gid,moves:[]});render()}}
+      <label class="field">
+        <span>Your nickname</span>
+        <input id="nick-input" type="text" maxlength="12" autocomplete="off" autocapitalize="words" spellcheck="false" placeholder="Monkey">
+      </label>
 
-/* ---------- networking (ntfy relay) ---------- */
-function post(d){d.id=cid;return fetch(NTFY+"/"+topic,{method:"POST",body:JSON.stringify(d),keepalive:true}).then(function(r){if(!r.ok)throw 0}).catch(function(){if(view==="room"){if(!G)fail("Couldn’t reach the relay server. Try again in a minute.");else{note="A message failed to send. Check your connection.";render()}}})}
-function openChan(f){if(typeof EventSource==="undefined")return fail("This browser can’t connect.");
-es=new EventSource(NTFY+"/"+topic+"/sse");es.onopen=function(){if(f){var g=f;f=null;g()}};
-es.onmessage=function(e){var o,d;try{o=JSON.parse(e.data);if(o.event!=="message")return;d=JSON.parse(o.message)}catch(x){return}handle(d)}}
-function teardown(){clearTimeout(gt);if(es){try{es.close()}catch(e){}es=null}}
-function bye(){if(es&&view==="room")post({t:isHost?"hostleft":"leave"})}
-function leave(){auto=false;clearTimeout(autoT);autoT=null;bye();teardown();G=null;view="home";msg="";isHost=false;busy=false;render()}
-function fail(m){teardown();G=null;view="home";msg=m;render()}
-function hostRoom(){teardown();isHost=true;code=rc();topic=TP+code;G=null;gid=null;gno=0;view="room";msg="";render();
-try{if(navigator.wakeLock)navigator.wakeLock.request("screen").catch(function(){})}catch(e){}
-openChan(function(){})}
-function joinRoom(c){teardown();isHost=false;code=c;topic=TP+c;G=null;view="room";msg="Joining room…";render();
-gt=setTimeout(function(){if(!G)fail("Room not found. Check the code and make sure the host has the game open.")},15000);
-openChan(function(){post({t:"join",name:name});setTimeout(function(){if(!G&&es)post({t:"join",name:name})},4000)})}
-function sendStart(){post({t:"start",no:G.no,hc:G.me,hn:name,gid:gid,moves:G.moves.map(uci)})}
-function handle(d){
-if(!d||d.id===cid)return;
-if(isHost){
-if(d.t==="join"){
-if(gid&&gid!==d.id){post({t:"full",to:d.id});return}
-var first=!gid;gid=d.id;
-if(first||!G){gno++;var hc=Math.random()<.5?1:-1;mkGame(gno,hc,clean(d.name)||"Guest",[]);G.opp=clean(d.name)||"Guest"}else G.opp=clean(d.name)||G.opp;
-post({t:"start",no:G.no,hc:G.me,hn:name,gid:gid,moves:G.moves.map(uci)});render();return}
-if(d.id!==gid)return}
-else{
-if(d.t==="hostleft"){fail("The host left the room.");return}
-if(d.t==="full"&&d.to===cid){fail("This room is full.");return}
-if(d.t==="start"&&d.gid===cid){
-if(!G||G.no!==d.no){mkGame(d.no,-d.hc,clean(d.hn)||"Host",d.moves)}else{
-var mine=G.moves.map(uci);if(d.moves.length>mine.length)onMv({no:d.no,m:d.moves})}
-clearTimeout(gt);view="room";render();return}}
-if(!G)return;
-if(d.t==="mv")onMv(d);
-else if(d.t==="leave"){if(!G.res){G.res={w:G.me,t:"Opponent left"}}render()}
-else if(d.t==="sync"){if(isHost&&G)sendStart();else if(G)sendMoves()}
-else if(d.no!==G.no)return;
-else if(d.t==="res"&&!G.res){G.res={w:G.me,t:"Opponent resigned"};render()}
-else if(d.t==="dr"&&!G.res){G.drawOffer="them";render()}
-else if(d.t==="da"&&G.drawOffer==="me"&&!G.res){G.res={w:0,t:"Draw by agreement"};render()}
-else if(d.t==="dn"&&G.drawOffer==="me"){G.drawOffer=null;note=G.opp+" declined the draw.";render()}
-else if(d.t==="rm"&&G.res){G.rm[1]=true;tryRematch();render()}}
-function onMv(d){
-if(!G||d.no!==G.no||G.res)return;
-var mine=G.moves.map(uci),i,m;
-if(d.m.length<=mine.length)return;
-for(i=0;i<mine.length;i++)if(mine[i]!==d.m[i])return;
-for(i=mine.length;i<d.m.length;i++){
-if((i%2===0?1:-1)===G.me)break;
-m=fromUci(d.m[i]);if(!m)break;
-doMove(m);if(G.res)break}
-note="";render()}
-document.addEventListener("visibilitychange",function(){if(document.visibilityState==="visible"&&es&&view==="room"){post({t:"sync"})}});
-window.addEventListener("pagehide",bye);
-render();
-})();
+      <button id="btn-create" class="btn btn-primary" type="button">Create room</button>
+
+      <div class="or"><span>or join friends</span></div>
+
+      <div class="join-row">
+        <input id="code-input" type="text" maxlength="4" autocomplete="off" autocapitalize="characters" spellcheck="false" inputmode="text" placeholder="CODE" aria-label="Room code">
+        <button id="btn-join" class="btn btn-secondary" type="button">Join room</button>
+      </div>
+
+      <div class="menu-links">
+        <button id="btn-howto" class="link-btn" type="button">How to play</button>
+        <button id="btn-settings" class="link-btn" type="button">Settings</button>
+      </div>
+
+      <p id="menu-status" class="status"><i class="dot"></i><span id="menu-status-text">Connecting…</span></p>
+      <p id="menu-error" class="form-error" role="alert" hidden></p>
+    </div>
+  </section>
+
+  <!-- ============ LOBBY ============ -->
+  <section id="screen-lobby" class="screen" aria-label="Lobby">
+    <div class="lobby-card">
+      <p class="small">Room code</p>
+      <div id="lobby-code" class="code-big" aria-live="polite">----</div>
+      <div class="row">
+        <button id="btn-copy-code" class="btn btn-small btn-secondary" type="button">Copy code</button>
+        <button id="btn-copy-link" class="btn btn-small btn-secondary" type="button">Copy invite link</button>
+      </div>
+
+      <h2 class="lobby-count"><span id="lobby-count">1/4</span> players</h2>
+      <ul id="lobby-players" class="player-list"></ul>
+
+      <p id="lobby-hint" class="hint"></p>
+      <div class="row row-stack">
+        <button id="btn-ready" class="btn btn-primary" type="button">Ready</button>
+        <button id="btn-start" class="btn btn-accent" type="button" hidden>Start match</button>
+        <button id="btn-leave" class="btn btn-ghost" type="button">Leave room</button>
+      </div>
+      <p id="lobby-status" class="status"><i class="dot"></i><span id="lobby-status-text">Connected</span></p>
+    </div>
+  </section>
+
+  <!-- ============ GAME ============ -->
+  <section id="screen-game" class="screen" aria-label="Game">
+    <canvas id="gl"></canvas>
+
+    <div id="hud" class="hud">
+      <div class="hud-top">
+        <div id="hud-players" class="hud-players"></div>
+        <div class="hud-center">
+          <div id="hud-timer" class="hud-timer">3:00</div>
+          <div id="hud-alive" class="hud-alive">4 alive</div>
+        </div>
+        <div class="hud-right">
+          <div id="hud-net" class="hud-net"><i class="dot"></i><span id="hud-net-text">--</span></div>
+          <button id="btn-menu" class="btn btn-icon" type="button" aria-label="Menu">Menu</button>
+        </div>
+      </div>
+      <div id="hud-stats" class="hud-stats">
+        <span class="chip" id="stat-bombs" title="Bombs">Bombs 0/1</span>
+        <span class="chip" id="stat-range" title="Blast range">Range 2</span>
+        <span id="stat-effects" class="effects"></span>
+      </div>
+      <div id="spectate" class="spectate" hidden>You are out. Spectating…</div>
+    </div>
+
+    <div id="overlay-center" class="overlay-center" aria-live="assertive" hidden></div>
+    <div id="banner" class="banner" aria-live="polite" hidden></div>
+
+    <div id="controls" class="controls">
+      <div id="joy-zone" class="joy-zone">
+        <div id="joy-base" class="joy-base" hidden><div id="joy-knob" class="joy-knob"></div></div>
+        <span class="joy-hint">Drag to move</span>
+      </div>
+      <div class="buttons">
+        <button id="btn-det" class="act act-det" type="button" hidden>Boom</button>
+        <button id="btn-trap" class="act act-trap" type="button" hidden>Peel</button>
+        <button id="btn-bomb" class="act act-bomb" type="button">Bomb</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ RESULTS ============ -->
+  <section id="screen-results" class="screen" aria-label="Results">
+    <div class="results-card">
+      <h2 id="result-title" class="result-title">Winner</h2>
+      <p id="result-sub" class="small"></p>
+      <ol id="result-list" class="result-list"></ol>
+      <p id="results-wait" class="hint" hidden>Waiting for the host…</p>
+      <div class="row row-stack">
+        <button id="btn-rematch" class="btn btn-primary" type="button" hidden>Rematch</button>
+        <button id="btn-lobby" class="btn btn-secondary" type="button" hidden>Back to lobby</button>
+        <button id="btn-results-leave" class="btn btn-ghost" type="button">Leave room</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ MODALS ============ -->
+  <div id="modal-howto" class="modal" role="dialog" aria-modal="true" aria-labelledby="howto-title" hidden>
+    <div class="modal-card">
+      <h2 id="howto-title">How to play</h2>
+      <ul class="howto">
+        <li>Be the last banana standing. Blast crates, dodge flames, trap your friends.</li>
+        <li><b>Move:</b> drag the left side of the screen, or use WASD / arrow keys.</li>
+        <li><b>Bomb:</b> the Bomb button or Space. Bombs explode after 2.5 seconds in a cross shape. Walls stop the blast, crates break it.</li>
+        <li><b>Red tiles</b> show where flames are about to land. Bombs chain into each other.</li>
+        <li><b>Power-ups from crates:</b> extra bomb, bigger blast, speed boost, shield (blocks one hit), remote detonator (Boom button or E), banana peel trap (Peel button or Q), bomb kick (walk into a bomb to push it).</li>
+        <li>Matches last up to 3 minutes. If time runs out with several players alive, it is a draw.</li>
+        <li>If you lose connection mid-match you have 20 seconds to come back before you are knocked out.</li>
+      </ul>
+      <button class="btn btn-primary modal-close" type="button">Got it</button>
+    </div>
+  </div>
+
+  <div id="modal-settings" class="modal" role="dialog" aria-modal="true" aria-labelledby="settings-title" hidden>
+    <div class="modal-card">
+      <h2 id="settings-title">Settings</h2>
+      <label class="toggle"><input id="set-sound" type="checkbox"> <span>Sound effects</span></label>
+      <label class="toggle"><input id="set-shake" type="checkbox"> <span>Screen shake</span></label>
+      <label class="toggle"><input id="set-motion" type="checkbox"> <span>Reduce motion (less bobbing, confetti, shake)</span></label>
+      <label class="field">
+        <span>Graphics quality</span>
+        <select id="set-quality">
+          <option value="auto">Auto</option>
+          <option value="low">Low (best battery)</option>
+          <option value="high">High (shadows)</option>
+        </select>
+      </label>
+      <button class="btn btn-primary modal-close" type="button">Done</button>
+    </div>
+  </div>
+
+  <div id="modal-menu" class="modal" role="dialog" aria-modal="true" aria-labelledby="menu-title" hidden>
+    <div class="modal-card">
+      <h2 id="menu-title">Paused menu</h2>
+      <p class="small">The match keeps running for everyone else.</p>
+      <button id="btn-resume" class="btn btn-primary" type="button">Back to the game</button>
+      <button id="btn-menu-settings" class="btn btn-secondary" type="button">Settings</button>
+      <button id="btn-menu-howto" class="btn btn-secondary" type="button">How to play</button>
+      <button id="btn-menu-leave" class="btn btn-ghost" type="button">Leave match</button>
+    </div>
+  </div>
+
+  <div id="conn-banner" class="conn-banner" role="status" hidden>Connection lost. Reconnecting…</div>
+  <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+  <div id="fatal" class="fatal" role="alert" hidden></div>
+</div>
+
+<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+<script type="module">
+import * as THREE from 'three';
+const __defs = {}; const __cache = {};
+const __cryptoShim = {
+  randomInt(a, b) { const lo = b === undefined ? 0 : a, hi = b === undefined ? a : b; const u = new Uint32Array(1); globalThis.crypto.getRandomValues(u); return lo + (u[0] % (hi - lo)); },
+  randomBytes(n) { const u = new Uint8Array(n); globalThis.crypto.getRandomValues(u); u.toString = (enc) => Array.from(u, (x) => x.toString(16).padStart(2, '0')).join(''); return u; },
+  timingSafeEqual(a, b) { if (a.length !== b.length) throw new Error('length'); let d = 0; for (let i = 0; i < a.length; i++) d |= a[i] ^ b[i]; return d === 0; },
+};
+const __BufferShim = { from: (s) => new TextEncoder().encode(String(s)) };
+function __require(name) {
+  if (name === 'crypto') return __cryptoShim;
+  if (__cache[name]) return __cache[name].exports;
+  const def = __defs[name]; if (!def) throw new Error('module not bundled: ' + name);
+  const module = { exports: {} }; __cache[name] = module;
+  def(module, module.exports, __require, __BufferShim);
+  return module.exports;
+}
+__defs["./config"] = function (module, exports, require, Buffer) {
+
+// All gameplay constants live here. Units: grid cells and milliseconds.
+module.exports = Object.freeze({
+  COLS: 13,
+  ROWS: 11,
+  TICK_HZ: 30,
+
+  MIN_PLAYERS: 2,
+  MAX_PLAYERS: 4,
+  COUNTDOWN_MS: 3500,
+  MATCH_MS: 180000,
+
+  FUSE_MS: 2500,
+  FLAME_MS: 600,
+  BOMB_COOLDOWN_MS: 300,
+  REMOTE_MIN_FUSE_AGE_MS: 350,
+  KICK_COOLDOWN_MS: 220,
+
+  START_MAX_BOMBS: 1,
+  START_RANGE: 2,
+  CAP_MAX_BOMBS: 6,
+  CAP_RANGE: 8,
+
+  HALF: 0.3, // player half-size (collision box is 0.6 x 0.6 cells)
+  BASE_SPEED: 3.6, // cells / second
+  SPEED_MULT: 1.5,
+  SPEED_MS: 8000,
+  SLIP_MS: 1100,
+  SLIP_MULT: 1.2,
+  TRAP_MS: 12000,
+  TRAP_ARM_MS: 600,
+  SHIELD_INVULN_MS: 700,
+  DET_CHARGES: 3,
+  CAP_TRAPS: 3,
+  INPUT_TIMEOUT_MS: 1500,
+
+  CRATE_DENSITY: 0.72,
+  DROP_CHANCE: 0.38,
+  DROP_WEIGHTS: { bomb: 20, range: 20, speed: 14, shield: 10, detonator: 10, banana: 12, kick: 10 },
+
+  RECONNECT_GRACE_MS: 20000,
+});
+
+};
+__defs["./game"] = function (module, exports, require, Buffer) {
+
+/**
+ * Authoritative match simulation. Pure logic: no sockets, no timers, no I/O.
+ * The caller passes `now` (ms) into every call, which makes the simulation deterministic and testable.
+ *
+ * ORDER OF OPERATIONS inside update(now) (documented contract):
+ *   1. expire banana traps
+ *   2. move every living player (axis-separated collision, kicks, wall/crate/bomb blocking)
+ *   3. release "walk-through" rights of bombs a player has stepped off
+ *   4. power-up pickups, then banana-trap triggers
+ *   5. detonations: every bomb whose fuse expired (or was remotely triggered) is collected, chain
+ *      reactions are expanded to a fixed point, ALL blast shapes are computed against the crate/wall
+ *      layout as it was at the start of this step, then bombs are removed, crates destroyed,
+ *      old pickups/traps in the blast destroyed, drops rolled, and ONE flame group (gid) is created.
+ *   6. flame damage: each living player standing in a flame cell is hit at most once per gid;
+ *      a shield absorbs the hit, otherwise the player is eliminated. All eliminations of one update
+ *      share the same timestamp, so simultaneous deaths are detected as draws.
+ *   7. win / draw / time-up check
+ * Because blast shapes use the pre-step layout and results are unions, the outcome does not depend on
+ * the order in which simultaneous bombs are processed.
+ */
+const C = require('./config');
+
+const { COLS, ROWS } = C;
+const FLOOR = 0;
+const WALL = 1;
+const CRATE = 2;
+const DIRS = [[1, 0], [-1, 0], [0, 1], [0, -1]];
+const POWERUP_TYPES = Object.keys(C.DROP_WEIGHTS);
+
+function mulberry32(seed) {
+  let a = seed >>> 0;
+  return function rng() {
+    a = (a + 0x6d2b79f5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+const idx = (x, y) => y * COLS + x;
+const inBounds = (x, y) => x >= 0 && y >= 0 && x < COLS && y < ROWS;
+const round3 = (n) => Math.round(n * 1000) / 1000;
+
+const SPAWNS = [
+  [1, 1],
+  [COLS - 2, 1],
+  [1, ROWS - 2],
+  [COLS - 2, ROWS - 2],
+];
+
+/** Cells that must stay free of crates around a spawn (an L shape plus two escape cells). */
+function spawnSafeCells(slot) {
+  const [sx, sy] = SPAWNS[slot];
+  const dx = sx < COLS / 2 ? 1 : -1;
+  const dy = sy < ROWS / 2 ? 1 : -1;
+  return [
+    [sx, sy],
+    [sx + dx, sy],
+    [sx + 2 * dx, sy],
+    [sx, sy + dy],
+    [sx, sy + 2 * dy],
+    [sx + 2 * dx, sy + dy],
+    [sx + dx, sy + 2 * dy],
+  ];
+}
+
+function generateGrid(seed) {
+  const rng = mulberry32(seed);
+  const grid = new Uint8Array(COLS * ROWS);
+  const safe = new Set();
+  for (let s = 0; s < 4; s++) for (const [x, y] of spawnSafeCells(s)) safe.add(idx(x, y));
+  for (let y = 0; y < ROWS; y++) {
+    for (let x = 0; x < COLS; x++) {
+      const border = x === 0 || y === 0 || x === COLS - 1 || y === ROWS - 1;
+      const pillar = x % 2 === 0 && y % 2 === 0;
+      if (border || pillar) grid[idx(x, y)] = WALL;
+      else if (!safe.has(idx(x, y)) && rng() < C.CRATE_DENSITY) grid[idx(x, y)] = CRATE;
+      else grid[idx(x, y)] = FLOOR;
+    }
+  }
+  return grid;
+}
+
+class Game {
+  /**
+   * @param {{seed:number, players:{id:string,nick:string,color:string,slot:number}[], startAt:number}} opts
+   */
+  constructor({ seed, players, startAt }) {
+    this.seed = seed >>> 0;
+    this.rng = mulberry32((this.seed ^ 0x9e3779b9) >>> 0); // separate stream for drops
+    this.grid = generateGrid(this.seed);
+    this.crateCount = 0;
+    for (let i = 0; i < this.grid.length; i++) if (this.grid[i] === CRATE) this.crateCount++;
+
+    this.phase = 'countdown'; // countdown -> active -> over
+    this.startAt = startAt;
+    this.endsAt = 0;
+    this.lastUpdate = startAt;
+    this.events = [];
+    this.result = null;
+
+    this.bombs = new Map(); // id -> bomb
+    this.bombCells = new Map(); // cell index -> bomb
+    this.powerups = new Map(); // id -> {id,x,y,type}
+    this.traps = new Map(); // id -> trap
+    this.flames = []; // {gid, cells: Map(cellIndex -> ownerId), until}
+    this.seq = { bomb: 0, up: 0, trap: 0, gid: 0 };
+
+    this.players = new Map();
+    for (const p of players) {
+      const [sx, sy] = SPAWNS[p.slot];
+      this.players.set(p.id, {
+        id: p.id, nick: p.nick, color: p.color, slot: p.slot,
+        x: sx + 0.5, y: sy + 0.5, fx: 0, fy: 1,
+        alive: true, connected: true,
+        dirX: 0, dirY: 0, lastInputAt: 0, moving: false,
+        maxBombs: C.START_MAX_BOMBS, range: C.START_RANGE,
+        speedUntil: 0, shield: false, invulnUntil: 0,
+        det: 0, traps: 0, kick: false,
+        lastBombAt: -1e9, slipUntil: 0, slipDx: 0, slipDy: 0,
+        hitGids: new Set(),
+        elimAt: 0, elimBy: null, elimReason: null,
+        kills: 0, selfKo: 0,
+      });
+    }
+  }
+
+  // ---------------------------------------------------------------- public API (called by RoomManager)
+
+  config() {
+    return {
+      cols: COLS, rows: ROWS, fuseMs: C.FUSE_MS, flameMs: C.FLAME_MS, matchMs: C.MATCH_MS,
+      baseSpeed: C.BASE_SPEED, speedMs: C.SPEED_MS,
+    };
+  }
+
+  setInput(pid, dx, dy, now) {
+    const p = this.players.get(pid);
+    if (!p || !p.alive || this.phase !== 'active') return false;
+    if (typeof dx !== 'number' || typeof dy !== 'number' || !Number.isFinite(dx) || !Number.isFinite(dy)) return false;
+    let len = Math.hypot(dx, dy);
+    if (len > 1) { dx /= len; dy /= len; len = 1; }
+    if (len < 0.05) { dx = 0; dy = 0; }
+    p.dirX = dx; p.dirY = dy; p.lastInputAt = now;
+    if (len > 0) { const l = Math.hypot(dx, dy); p.fx = dx / l; p.fy = dy / l; }
+    return true;
+  }
+
+  placeBomb(pid, now) {
+    const p = this.players.get(pid);
+    if (!p || !p.alive) return { ok: false, reason: 'dead' };
+    if (this.phase !== 'active') return { ok: false, reason: 'not_active' };
+    if (now - p.lastBombAt < C.BOMB_COOLDOWN_MS) return { ok: false, reason: 'cooldown' };
+    let mine = 0;
+    for (const b of this.bombs.values()) if (b.owner === pid) mine++;
+    if (mine >= p.maxBombs) return { ok: false, reason: 'capacity' };
+    const cx = Math.floor(p.x);
+    const cy = Math.floor(p.y);
+    if (!inBounds(cx, cy) || this.grid[idx(cx, cy)] !== FLOOR) return { ok: false, reason: 'blocked' };
+    if (this.bombCells.has(idx(cx, cy))) return { ok: false, reason: 'occupied' };
+    if (this._inFlame(idx(cx, cy), now)) return { ok: false, reason: 'flame' };
+    const bomb = {
+      id: ++this.seq.bomb, owner: pid, cx, cy, range: p.range,
+      placedAt: now, explodeAt: now + C.FUSE_MS, pass: new Set(), kickedAt: -1e9,
+    };
+    for (const q of this.players.values()) if (q.alive && this._overlapsCell(q, cx, cy)) bomb.pass.add(q.id);
+    this.bombs.set(bomb.id, bomb);
+    this.bombCells.set(idx(cx, cy), bomb);
+    p.lastBombAt = now;
+    this.events.push({ t: 'bomb', id: bomb.id, x: cx, y: cy, o: pid });
+    return { ok: true, id: bomb.id };
+  }
+
+  detonate(pid, now) {
+    const p = this.players.get(pid);
+    if (!p || !p.alive || this.phase !== 'active') return { ok: false, reason: 'not_active' };
+    if (p.det <= 0) return { ok: false, reason: 'no_detonator' };
+    let target = null;
+    for (const b of this.bombs.values()) {
+      if (b.owner !== pid || now - b.placedAt < C.REMOTE_MIN_FUSE_AGE_MS || b.explodeAt <= now) continue;
+      if (!target || b.placedAt < target.placedAt) target = b;
+    }
+    if (!target) return { ok: false, reason: 'no_bomb' };
+    p.det--;
+    target.explodeAt = now;
+    return { ok: true, id: target.id };
+  }
+
+  placeTrap(pid, now) {
+    const p = this.players.get(pid);
+    if (!p || !p.alive || this.phase !== 'active') return { ok: false, reason: 'not_active' };
+    if (p.traps <= 0) return { ok: false, reason: 'no_trap' };
+    const cx = Math.floor(p.x);
+    const cy = Math.floor(p.y);
+    if (!inBounds(cx, cy) || this.grid[idx(cx, cy)] !== FLOOR) return { ok: false, reason: 'blocked' };
+    for (const t of this.traps.values()) if (t.x === cx && t.y === cy) return { ok: false, reason: 'occupied' };
+    p.traps--;
+    const trap = { id: ++this.seq.trap, x: cx, y: cy, owner: pid, armAt: now + C.TRAP_ARM_MS, expiresAt: now + C.TRAP_MS };
+    this.traps.set(trap.id, trap);
+    this.events.push({ t: 'trap', id: trap.id, x: cx, y: cy, o: pid });
+    return { ok: true, id: trap.id };
+  }
+
+  setConnected(pid, connected) {
+    const p = this.players.get(pid);
+    if (!p) return;
+    p.connected = connected;
+    if (!connected) { p.dirX = 0; p.dirY = 0; }
+  }
+
+  /** Removes a player from the fight because they left or stayed disconnected past the grace period. */
+  eliminateByDisconnect(pid, now, reason) {
+    const p = this.players.get(pid);
+    if (!p || !p.alive) return;
+    this._eliminate(p, null, now, reason || 'disconnect');
+    if (this.phase === 'active') this._checkEnd(now);
+  }
+
+  drainEvents() {
+    const e = this.events;
+    this.events = [];
+    return e;
+  }
+
+  // ---------------------------------------------------------------- simulation
+
+  update(now) {
+    if (this.phase === 'over') return;
+    if (this.phase === 'countdown') {
+      if (now < this.startAt) return;
+      this.phase = 'active';
+      this.endsAt = this.startAt + C.MATCH_MS;
+      this.lastUpdate = now;
+    }
+    const dt = Math.min(Math.max((now - this.lastUpdate) / 1000, 0), 0.1);
+    this.lastUpdate = now;
+    this._now = now;
+
+    for (const [id, t] of this.traps) if (t.expiresAt <= now) this.traps.delete(id);
+
+    for (const p of this.players.values()) if (p.alive) this._move(p, dt, now);
+    this._updatePassRights();
+
+    for (const p of this.players.values()) {
+      if (!p.alive) continue;
+      this._pickup(p, now);
+      this._trapCheck(p, now);
+    }
+
+    this._detonations(now);
+    this._flameDamage(now);
+    this._checkEnd(now);
+  }
+
+  _eliminate(p, by, now, reason) {
+    p.alive = false;
+    p.elimAt = now;
+    p.elimBy = by;
+    p.elimReason = reason;
+    p.dirX = 0; p.dirY = 0;
+    if (by && by !== p.id) { const k = this.players.get(by); if (k) k.kills++; }
+    else if (by === p.id) p.selfKo++;
+    this.events.push({ t: 'elim', id: p.id, by: by || null, r: reason });
+  }
+
+  _overlapsCell(p, cx, cy) {
+    return p.x + C.HALF > cx && p.x - C.HALF < cx + 1 && p.y + C.HALF > cy && p.y - C.HALF < cy + 1;
+  }
+
+  _blocked(px, py, p) {
+    const h = C.HALF;
+    const x0 = Math.floor(px - h), x1 = Math.floor(px + h - 1e-9);
+    const y0 = Math.floor(py - h), y1 = Math.floor(py + h - 1e-9);
+    for (let y = y0; y <= y1; y++) {
+      for (let x = x0; x <= x1; x++) {
+        if (!inBounds(x, y)) return true;
+        if (this.grid[idx(x, y)] !== FLOOR) return true;
+        const b = this.bombCells.get(idx(x, y));
+        if (b && !b.pass.has(p.id)) return true;
+      }
+    }
+    return false;
+  }
+
+  _move(p, dt, now) {
+    let dx = p.dirX, dy = p.dirY;
+    if (now - p.lastInputAt > C.INPUT_TIMEOUT_MS || !p.connected) { dx = 0; dy = 0; }
+    const slipping = now < p.slipUntil;
+    if (slipping) { dx = p.slipDx; dy = p.slipDy; }
+    if (dx === 0 && dy === 0) { p.moving = false; return; }
+    const speed = C.BASE_SPEED * (now < p.speedUntil ? C.SPEED_MULT : 1) * (slipping ? C.SLIP_MULT : 1);
+    const dist = speed * dt;
+    const steps = Math.max(1, Math.ceil(dist / 0.15));
+    const sd = dist / steps;
+    for (let i = 0; i < steps; i++) this._step(p, dx * sd, dy * sd, now);
+    p.moving = true;
+  }
+
+  _step(p, mx, my, now) {
+    if (mx !== 0) {
+      const nx = p.x + mx;
+      if (!this._blocked(nx, p.y, p)) p.x = nx;
+      else {
+        if (p.kick) this._tryKick(p, Math.sign(mx), 0, now, nx, p.y);
+        if (my === 0) this._assist(p, 'y', Math.abs(mx));
+      }
+    }
+    if (my !== 0) {
+      const ny = p.y + my;
+      if (!this._blocked(p.x, ny, p)) p.y = ny;
+      else {
+        if (p.kick) this._tryKick(p, 0, Math.sign(my), now, p.x, ny);
+        if (mx === 0) this._assist(p, 'x', Math.abs(my));
+      }
+    }
+  }
+
+  /** Corner assist: nudge the player toward the centre line of their current row/column so they can slide past corners. */
+  _assist(p, axis, amount) {
+    const cur = axis === 'y' ? p.y : p.x;
+    const center = Math.floor(cur) + 0.5;
+    const d = center - cur;
+    if (Math.abs(d) < 1e-3) return;
+    const next = cur + Math.sign(d) * Math.min(Math.abs(d), amount);
+    if (axis === 'y' ? !this._blocked(p.x, next, p) : !this._blocked(next, p.y, p)) {
+      if (axis === 'y') p.y = next; else p.x = next;
+    }
+  }
+
+  _tryKick(p, sx, sy, now, nx, ny) {
+    // Cell containing the leading edge of the position the player tried to move to.
+    const lx = nx + sx * C.HALF, ly = ny + sy * C.HALF;
+    const ix = sx > 0 ? Math.floor(lx - 1e-9) : Math.floor(lx);
+    const iy = sy > 0 ? Math.floor(ly - 1e-9) : Math.floor(ly);
+    const bomb = inBounds(ix, iy) ? this.bombCells.get(idx(ix, iy)) : null;
+    if (!bomb || bomb.pass.has(p.id) || now - bomb.kickedAt < C.KICK_COOLDOWN_MS) return;
+    // The player must be roughly lined up with the bomb.
+    const off = sx !== 0 ? Math.abs(p.y - (iy + 0.5)) : Math.abs(p.x - (ix + 0.5));
+    if (off > 0.35) return;
+    const tx = ix + sx, ty = iy + sy;
+    if (!inBounds(tx, ty) || this.grid[idx(tx, ty)] !== FLOOR || this.bombCells.has(idx(tx, ty))) return;
+    for (const q of this.players.values()) if (q.alive && this._overlapsCell(q, tx, ty)) return;
+    this.bombCells.delete(idx(bomb.cx, bomb.cy));
+    bomb.cx = tx; bomb.cy = ty; bomb.kickedAt = now;
+    this.bombCells.set(idx(tx, ty), bomb);
+    this.events.push({ t: 'kick', id: bomb.id, x: tx, y: ty });
+  }
+
+  _updatePassRights() {
+    for (const b of this.bombs.values()) {
+      if (b.pass.size === 0) continue;
+      for (const pid of b.pass) {
+        const p = this.players.get(pid);
+        if (!p || !p.alive || !this._overlapsCell(p, b.cx, b.cy)) b.pass.delete(pid);
+      }
+    }
+  }
+
+  _pickup(p, now) {
+    const cx = Math.floor(p.x), cy = Math.floor(p.y);
+    for (const u of this.powerups.values()) {
+      if (u.x !== cx || u.y !== cy) continue;
+      this.powerups.delete(u.id); // removed first, so it can never be collected twice
+      switch (u.type) {
+        case 'bomb': p.maxBombs = Math.min(C.CAP_MAX_BOMBS, p.maxBombs + 1); break;
+        case 'range': p.range = Math.min(C.CAP_RANGE, p.range + 1); break;
+        case 'speed': p.speedUntil = Math.max(p.speedUntil, now) + C.SPEED_MS; break;
+        case 'shield': p.shield = true; break;
+        case 'detonator': p.det += C.DET_CHARGES; break;
+        case 'banana': p.traps = Math.min(C.CAP_TRAPS, p.traps + 1); break;
+        case 'kick': p.kick = true; break;
+        default: break;
+      }
+      this.events.push({ t: 'pickup', id: u.id, p: p.id, k: u.type, x: u.x, y: u.y });
+      break; // one pickup per tick per player
+    }
+  }
+
+  _trapCheck(p, now) {
+    if (now < p.slipUntil) return;
+    const cx = Math.floor(p.x), cy = Math.floor(p.y);
+    for (const t of this.traps.values()) {
+      if (t.x !== cx || t.y !== cy) continue;
+      if (t.owner === p.id && now < t.armAt) continue;
+      this.traps.delete(t.id);
+      let dx = p.dirX, dy = p.dirY;
+      if (dx === 0 && dy === 0) { dx = p.fx; dy = p.fy; }
+      const l = Math.hypot(dx, dy) || 1;
+      p.slipDx = dx / l; p.slipDy = dy / l; p.slipUntil = now + C.SLIP_MS;
+      this.events.push({ t: 'slip', id: p.id, trap: t.id });
+      break;
+    }
+  }
+
+  _inFlame(cell, now) {
+    for (const f of this.flames) if (f.until > now && f.cells.has(cell)) return true;
+    return false;
+  }
+
+  _detonations(now) {
+    const due = [];
+    for (const b of this.bombs.values()) if (b.explodeAt <= now) due.push(b);
+    if (due.length === 0) return;
+    due.sort((a, b) => a.explodeAt - b.explodeAt || a.id - b.id);
+
+    const gid = ++this.seq.gid;
+    const queue = due.slice();
+    const done = new Map();
+    const cells = new Map(); // cell index -> owner id (first bomb to reach it, in processing order)
+    const origins = [];
+    while (queue.length) {
+      const b = queue.shift();
+      if (done.has(b.id)) continue;
+      done.set(b.id, b);
+      origins.push([b.cx, b.cy]);
+      const add = (x, y) => { const k = idx(x, y); if (!cells.has(k)) cells.set(k, b.owner); };
+      add(b.cx, b.cy);
+      for (const [dx, dy] of DIRS) {
+        for (let i = 1; i <= b.range; i++) {
+          const x = b.cx + dx * i, y = b.cy + dy * i;
+          if (!inBounds(x, y)) break;
+          const t = this.grid[idx(x, y)]; // pre-step layout: crates still block every blast in this step
+          if (t === WALL) break;
+          add(x, y);
+          if (t === CRATE) break;
+          const other = this.bombCells.get(idx(x, y));
+          if (other) { if (!done.has(other.id)) queue.push(other); break; } // chain reaction
+        }
+      }
+    }
+
+    for (const b of done.values()) { this.bombs.delete(b.id); this.bombCells.delete(idx(b.cx, b.cy)); }
+
+    const destroyed = [];
+    for (const k of cells.keys()) {
+      if (this.grid[k] === CRATE) { this.grid[k] = FLOOR; this.crateCount--; destroyed.push(k); }
+    }
+    for (const [id, u] of this.powerups) if (cells.has(idx(u.x, u.y))) { this.powerups.delete(id); this.events.push({ t: 'upgone', id }); }
+    for (const [id, t] of this.traps) if (cells.has(idx(t.x, t.y))) this.traps.delete(id);
+
+    for (const k of destroyed) {
+      const x = k % COLS, y = Math.floor(k / COLS);
+      this.events.push({ t: 'crate', x, y });
+      if (this.rng() < C.DROP_CHANCE) {
+        const type = this._rollDrop();
+        const u = { id: ++this.seq.up, x, y, type };
+        this.powerups.set(u.id, u);
+        this.events.push({ t: 'drop', id: u.id, x, y, k: type });
+      }
+    }
+
+    this.flames.push({ gid, cells, until: now + C.FLAME_MS });
+    this.events.push({
+      t: 'boom', gid, ms: C.FLAME_MS, origins,
+      cells: Array.from(cells.keys()).map((k) => [k % COLS, Math.floor(k / COLS)]),
+    });
+  }
+
+  _rollDrop() {
+    let total = 0;
+    for (const t of POWERUP_TYPES) total += C.DROP_WEIGHTS[t];
+    let r = this.rng() * total;
+    for (const t of POWERUP_TYPES) { r -= C.DROP_WEIGHTS[t]; if (r < 0) return t; }
+    return POWERUP_TYPES[0];
+  }
+
+  _flameDamage(now) {
+    this.flames = this.flames.filter((f) => f.until > now);
+    for (const f of this.flames) {
+      for (const p of this.players.values()) {
+        if (!p.alive || p.hitGids.has(f.gid)) continue;
+        const k = idx(Math.floor(p.x), Math.floor(p.y));
+        if (!f.cells.has(k)) continue;
+        p.hitGids.add(f.gid); // at most one hit per explosion group, whatever the number of overlapping cells/bombs
+        if (now < p.invulnUntil) continue;
+        if (p.shield) {
+          p.shield = false;
+          p.invulnUntil = now + C.SHIELD_INVULN_MS;
+          this.events.push({ t: 'shield', id: p.id });
+        } else {
+          this._eliminate(p, f.cells.get(k), now, 'blast');
+        }
+      }
+    }
+  }
+
+  _checkEnd(now) {
+    if (this.phase !== 'active') return;
+    const alive = [...this.players.values()].filter((p) => p.alive);
+    let reason = null;
+    let winnerId = null;
+    let drawIds = [];
+    if (alive.length === 0) {
+      reason = 'all_eliminated';
+      let last = -1;
+      for (const p of this.players.values()) last = Math.max(last, p.elimAt);
+      drawIds = [...this.players.values()].filter((p) => p.elimAt === last).map((p) => p.id);
+    } else if (alive.length === 1) {
+      reason = 'last_standing';
+      winnerId = alive[0].id;
+    } else if (now >= this.endsAt) {
+      reason = 'time_up';
+      drawIds = alive.map((p) => p.id);
+    }
+    if (!reason) return;
+    this.phase = 'over';
+    this.result = this._buildResult(reason, winnerId, drawIds, now);
+  }
+
+  _buildResult(reason, winnerId, drawIds, now) {
+    const list = [...this.players.values()].sort((a, b) => (b.alive - a.alive) || (b.elimAt - a.elimAt) || (a.slot - b.slot));
+    const standings = [];
+    let rank = 0;
+    let prev = null;
+    list.forEach((p, i) => {
+      const key = `${p.alive ? 1 : 0}:${p.alive ? 0 : p.elimAt}`;
+      if (key !== prev) rank = i + 1;
+      prev = key;
+      standings.push({ id: p.id, nick: p.nick, color: p.color, rank, alive: p.alive, kills: p.kills, selfKo: p.selfKo, reason: p.elimReason });
+    });
+    return { reason, winnerId, drawIds, standings, durationMs: Math.max(0, now - this.startAt) };
+  }
+
+  // ---------------------------------------------------------------- serialization
+
+  snapshot(now) {
+    const players = [];
+    for (const p of this.players.values()) {
+      let bc = 0;
+      for (const b of this.bombs.values()) if (b.owner === p.id) bc++;
+      players.push({
+        id: p.id, x: round3(p.x), y: round3(p.y), fx: round3(p.fx), fy: round3(p.fy),
+        a: p.alive ? 1 : 0, c: p.connected ? 1 : 0, mv: p.moving ? 1 : 0,
+        sh: p.shield ? 1 : 0, sl: now < p.slipUntil ? 1 : 0,
+        mb: p.maxBombs, bc, rg: p.range, sp: Math.max(0, Math.round(p.speedUntil - now)),
+        det: p.det, tr: p.traps, kk: p.kick ? 1 : 0,
+      });
+    }
+    return {
+      t: now,
+      ph: this.phase,
+      cd: this.phase === 'countdown' ? Math.max(0, this.startAt - now) : 0,
+      tl: this.phase === 'active' ? Math.max(0, this.endsAt - now) : (this.phase === 'countdown' ? C.MATCH_MS : 0),
+      p: players,
+      b: [...this.bombs.values()].map((b) => ({ id: b.id, x: b.cx, y: b.cy, o: b.owner, l: Math.max(0, b.explodeAt - now) })),
+      u: [...this.powerups.values()].map((u) => ({ id: u.id, x: u.x, y: u.y, k: u.type })),
+      tr: [...this.traps.values()].map((t) => ({ id: t.id, x: t.x, y: t.y })),
+      cr: this.crateCount,
+    };
+  }
+
+  /** Everything a client needs to (re)build the match view. */
+  fullState(now) {
+    return {
+      config: this.config(),
+      grid: Array.from(this.grid),
+      players: [...this.players.values()].map((p) => ({ id: p.id, nick: p.nick, color: p.color, slot: p.slot })),
+      flames: this.flames.filter((f) => f.until > now).map((f) => ({
+        gid: f.gid, ms: f.until - now,
+        cells: Array.from(f.cells.keys()).map((k) => [k % COLS, Math.floor(k / COLS)]),
+      })),
+      snap: this.snapshot(now),
+    };
+  }
+}
+
+module.exports = { Game, generateGrid, spawnSafeCells, SPAWNS, FLOOR, WALL, CRATE, POWERUP_TYPES, mulberry32 };
+
+};
+__defs["./rooms"] = function (module, exports, require, Buffer) {
+
+/**
+ * RoomManager owns rooms, players, the match lifecycle and reconnection.
+ * It never imports socket.io: it only needs `io.to(room).emit(...)` and sockets that expose
+ * `id`, `emit`, `join`, `leave`. That keeps it testable with in-memory fakes.
+ *
+ * DISCONNECT POLICY
+ *  - lobby / results: the player is removed immediately (they can rejoin with the code).
+ *  - countdown / active match: the player stays in the arena, standing still and vulnerable, for
+ *    RECONNECT_GRACE_MS. They can resume with their private token. After the grace period they are
+ *    eliminated. Leaving on purpose eliminates immediately.
+ *  - host leaves/disconnects: host passes to the next connected player (earliest slot).
+ *  - a room with no players is deleted.
+ */
+const crypto = require('crypto');
+const C = require('./config');
+const { Game } = require('./game');
+
+const CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // no I, O, 0, 1
+const COLORS = ['#ffd43b', '#ff6b9d', '#38d9e8', '#7ae05a'];
+const COLOR_NAMES = ['Yellow', 'Pink', 'Cyan', 'Green'];
+
+const ERR = {
+  BAD_REQUEST: 'Something was wrong with that request.',
+  BAD_CODE: 'That room code is not valid. Room codes have 4 letters or numbers.',
+  NO_ROOM: 'No room with that code. Check the code and try again.',
+  ROOM_FULL: `That room is full (${C.MAX_PLAYERS}/${C.MAX_PLAYERS} players).`,
+  IN_PROGRESS: 'A match is already running in that room. Try again when it finishes.',
+  ALREADY_IN_ROOM: 'You are already in a room. Leave it first.',
+  NOT_IN_ROOM: 'You are not in a room.',
+  NOT_HOST: 'Only the host can do that.',
+  NEED_PLAYERS: `At least ${C.MIN_PLAYERS} players are needed to start.`,
+  NOT_READY: 'Everyone has to be ready first.',
+  WRONG_PHASE: 'That is not possible right now.',
+  SERVER_BUSY: 'The server is full right now. Please try again in a minute.',
+  RESUME_FAILED: 'Could not rejoin that match.',
+  RATE_LIMIT: 'Slow down a little.',
+};
+
+function fail(code) { return { ok: false, code, error: ERR[code] || ERR.BAD_REQUEST }; }
+
+function sanitizeNick(raw) {
+  let s = typeof raw === 'string' ? raw : '';
+  s = s.replace(/[\u0000-\u001f\u007f<>&"'`\\]/g, '').replace(/\s+/g, ' ').trim().slice(0, 12);
+  return s || 'Monkey';
+}
+
+function normalizeCode(raw) {
+  if (typeof raw !== 'string') return null;
+  const c = raw.trim().toUpperCase();
+  return /^[A-HJ-NP-Z2-9]{4}$/.test(c) ? c : null;
+}
+
+function safeEqualHex(a, b) {
+  if (typeof a !== 'string' || typeof b !== 'string' || a.length !== b.length) return false;
+  return crypto.timingSafeEqual(Buffer.from(a), Buffer.from(b));
+}
+
+/** Small token-bucket rate limiter keyed by (socket id, bucket name). */
+class RateLimiter {
+  constructor(now = () => Date.now()) { this.now = now; this.buckets = new Map(); }
+  take(key, name, perSec, burst) {
+    const k = `${key}:${name}`;
+    const t = this.now();
+    let b = this.buckets.get(k);
+    if (!b) { b = { tokens: burst, at: t }; this.buckets.set(k, b); }
+    b.tokens = Math.min(burst, b.tokens + ((t - b.at) / 1000) * perSec);
+    b.at = t;
+    if (b.tokens < 1) return false;
+    b.tokens -= 1;
+    return true;
+  }
+  drop(key) { for (const k of this.buckets.keys()) if (k.startsWith(`${key}:`)) this.buckets.delete(k); }
+}
+
+class RoomManager {
+  constructor({ io, now = () => Date.now(), maxRooms = 200, graceMs = C.RECONNECT_GRACE_MS, log = () => {} }) {
+    this.io = io;
+    this.now = now;
+    this.maxRooms = maxRooms;
+    this.graceMs = graceMs;
+    this.log = log;
+    this.rooms = new Map(); // code -> room
+    this.bySocket = new Map(); // socket.id -> { code, pid }
+    this.socketRefs = new Map(); // socket.id -> socket
+  }
+
+  // ------------------------------------------------------------ helpers
+
+  _newCode() {
+    if (this.forcedCode && !this.rooms.has(this.forcedCode)) { const c = this.forcedCode; this.forcedCode = null; return c; } // serverless build: room code = host peer id
+    for (let i = 0; i < 50; i++) {
+      let c = '';
+      for (let j = 0; j < 4; j++) c += CODE_ALPHABET[crypto.randomInt(CODE_ALPHABET.length)];
+      if (!this.rooms.has(c)) return c;
+    }
+    return null;
+  }
+
+  _ctx(socket) {
+    const m = this.bySocket.get(socket.id);
+    if (!m) return null;
+    const room = this.rooms.get(m.code);
+    const player = room && room.players.get(m.pid);
+    if (!room || !player) return null;
+    return { room, player };
+  }
+
+  _publicRoom(room) {
+    return {
+      code: room.code,
+      hostId: room.hostId,
+      phase: room.phase,
+      max: C.MAX_PLAYERS,
+      players: [...room.players.values()].sort((a, b) => a.slot - b.slot).map((p) => ({
+        id: p.id, nick: p.nick, color: p.color, colorName: COLOR_NAMES[p.slot], slot: p.slot,
+        ready: p.ready || p.id === room.hostId, connected: p.connected,
+      })),
+    };
+  }
+
+  _broadcastRoom(room) { this.io.to(room.code).emit('room:update', this._publicRoom(room)); }
+
+  _attach(socket, room, player) {
+    player.socketId = socket.id;
+    player.connected = true;
+    player.disconnectedAt = 0;
+    this.bySocket.set(socket.id, { code: room.code, pid: player.id });
+    this.socketRefs.set(socket.id, socket);
+    socket.join(room.code);
+  }
+
+  _detach(socket, room) {
+    this.bySocket.delete(socket.id);
+    this.socketRefs.delete(socket.id);
+    if (socket.leave) socket.leave(room.code);
+  }
+
+  _freeSlot(room) {
+    const used = new Set([...room.players.values()].map((p) => p.slot));
+    for (let i = 0; i < C.MAX_PLAYERS; i++) if (!used.has(i)) return i;
+    return -1;
+  }
+
+  _reassignHost(room) {
+    const cur = room.players.get(room.hostId);
+    if (cur && cur.connected) return;
+    const next = [...room.players.values()].filter((p) => p.connected).sort((a, b) => a.slot - b.slot)[0]
+      || [...room.players.values()].sort((a, b) => a.slot - b.slot)[0];
+    room.hostId = next ? next.id : null;
+  }
+
+  _deleteIfEmpty(room) {
+    if (room.players.size === 0) { this.rooms.delete(room.code); this.log(`room ${room.code} closed (empty)`); return true; }
+    return false;
+  }
+
+  _addPlayer(socket, room, nick) {
+    const slot = this._freeSlot(room);
+    const player = {
+      id: crypto.randomBytes(4).toString('hex'),
+      token: crypto.randomBytes(16).toString('hex'),
+      nick: sanitizeNick(nick), slot, color: COLORS[slot],
+      ready: false, connected: true, socketId: null, disconnectedAt: 0,
+    };
+    room.players.set(player.id, player);
+    this._attach(socket, room, player);
+    return player;
+  }
+
+  // ------------------------------------------------------------ lobby API
+
+  createRoom(socket, data) {
+    if (this.bySocket.has(socket.id)) return fail('ALREADY_IN_ROOM');
+    if (this.rooms.size >= this.maxRooms) return fail('SERVER_BUSY');
+    const code = this._newCode();
+    if (!code) return fail('SERVER_BUSY');
+    const room = { code, hostId: null, phase: 'lobby', players: new Map(), game: null, createdAt: this.now() };
+    this.rooms.set(code, room);
+    const player = this._addPlayer(socket, room, data && data.nick);
+    room.hostId = player.id;
+    this._broadcastRoom(room);
+    this.log(`room ${code} created`);
+    return { ok: true, code, you: { id: player.id, token: player.token }, room: this._publicRoom(room) };
+  }
+
+  joinRoom(socket, data) {
+    if (!data || typeof data !== 'object') return fail('BAD_REQUEST');
+    if (this.bySocket.has(socket.id)) return fail('ALREADY_IN_ROOM');
+    const code = normalizeCode(data.code);
+    if (!code) return fail('BAD_CODE');
+    const room = this.rooms.get(code);
+    if (!room) return fail('NO_ROOM');
+    if (room.phase !== 'lobby') return fail('IN_PROGRESS');
+    if (room.players.size >= C.MAX_PLAYERS) return fail('ROOM_FULL');
+    const player = this._addPlayer(socket, room, data.nick);
+    this._broadcastRoom(room);
+    return { ok: true, code, you: { id: player.id, token: player.token }, room: this._publicRoom(room) };
+  }
+
+  setReady(socket, ready) {
+    const ctx = this._ctx(socket);
+    if (!ctx) return fail('NOT_IN_ROOM');
+    if (ctx.room.phase !== 'lobby') return fail('WRONG_PHASE');
+    ctx.player.ready = !!ready;
+    this._broadcastRoom(ctx.room);
+    return { ok: true };
+  }
+
+  startMatch(socket) {
+    const ctx = this._ctx(socket);
+    if (!ctx) return fail('NOT_IN_ROOM');
+    const { room, player } = ctx;
+    if (room.hostId !== player.id) return fail('NOT_HOST');
+    if (room.phase !== 'lobby') return fail('WRONG_PHASE');
+    const players = [...room.players.values()].filter((p) => p.connected);
+    if (players.length < C.MIN_PLAYERS) return fail('NEED_PLAYERS');
+    if (players.some((p) => p.id !== room.hostId && !p.ready)) return fail('NOT_READY');
+    this._beginMatch(room);
+    return { ok: true };
+  }
+
+  rematch(socket) {
+    const ctx = this._ctx(socket);
+    if (!ctx) return fail('NOT_IN_ROOM');
+    const { room, player } = ctx;
+    if (room.hostId !== player.id) return fail('NOT_HOST');
+    if (room.phase !== 'ended') return fail('WRONG_PHASE');
+    if (room.players.size < C.MIN_PLAYERS) return fail('NEED_PLAYERS');
+    this._beginMatch(room);
+    return { ok: true };
+  }
+
+  backToLobby(socket) {
+    const ctx = this._ctx(socket);
+    if (!ctx) return fail('NOT_IN_ROOM');
+    const { room, player } = ctx;
+    if (room.hostId !== player.id) return fail('NOT_HOST');
+    if (room.phase !== 'ended') return fail('WRONG_PHASE');
+    room.phase = 'lobby';
+    room.game = null;
+    for (const p of room.players.values()) p.ready = false;
+    this._broadcastRoom(room);
+    return { ok: true };
+  }
+
+  leave(socket) {
+    const ctx = this._ctx(socket);
+    if (!ctx) { this.bySocket.delete(socket.id); return { ok: true }; }
+    const { room, player } = ctx;
+    this._detach(socket, room);
+    const inMatch = room.phase === 'countdown' || room.phase === 'active';
+    if (inMatch && room.game) room.game.eliminateByDisconnect(player.id, this.now(), 'left');
+    room.players.delete(player.id);
+    this._afterMembershipChange(room);
+    return { ok: true };
+  }
+
+  handleDisconnect(socket) {
+    const ctx = this._ctx(socket);
+    this.socketRefs.delete(socket.id);
+    if (!ctx) { this.bySocket.delete(socket.id); return; }
+    const { room, player } = ctx;
+    this.bySocket.delete(socket.id);
+    const inMatch = room.phase === 'countdown' || room.phase === 'active';
+    if (inMatch) {
+      player.connected = false;
+      player.disconnectedAt = this.now();
+      player.socketId = null;
+      if (room.game) room.game.setConnected(player.id, false);
+      this._reassignHost(room);
+      this._broadcastRoom(room);
+      this.log(`player ${player.id} disconnected from ${room.code}; grace ${this.graceMs}ms`);
+    } else {
+      room.players.delete(player.id);
+      this._afterMembershipChange(room);
+    }
+  }
+
+  _afterMembershipChange(room) {
+    if (this._deleteIfEmpty(room)) return;
+    this._reassignHost(room);
+    this._broadcastRoom(room);
+  }
+
+  resume(socket, data) {
+    if (!data || typeof data !== 'object') return fail('BAD_REQUEST');
+    if (this.bySocket.has(socket.id)) return fail('ALREADY_IN_ROOM');
+    const code = normalizeCode(data.code);
+    const room = code && this.rooms.get(code);
+    const player = room && typeof data.pid === 'string' ? room.players.get(data.pid) : null;
+    if (!player || !safeEqualHex(player.token, data.token)) return fail('RESUME_FAILED');
+    const inMatch = room.phase === 'countdown' || room.phase === 'active';
+    if (!inMatch && room.phase !== 'lobby' && room.phase !== 'ended') return fail('RESUME_FAILED');
+    // Take over from a stale socket if the old connection has not timed out yet.
+    if (player.socketId && player.socketId !== socket.id) {
+      const old = this.socketRefs.get(player.socketId);
+      this.bySocket.delete(player.socketId);
+      this.socketRefs.delete(player.socketId);
+      if (old) { try { old.leave(room.code); old.emit('session:replaced'); } catch (e) { /* ignore */ } }
+    }
+    this._attach(socket, room, player);
+    if (room.game) room.game.setConnected(player.id, true);
+    this._reassignHost(room);
+    this._broadcastRoom(room);
+    if (inMatch && room.game) socket.emit('game:state', room.game.fullState(this.now()));
+    if (room.phase === 'ended' && room.game && room.game.result) socket.emit('match:end', room.game.result);
+    return { ok: true, code: room.code, you: { id: player.id, token: player.token }, room: this._publicRoom(room) };
+  }
+
+  // ------------------------------------------------------------ match lifecycle
+
+  _beginMatch(room) {
+    const now = this.now();
+    const players = [...room.players.values()].sort((a, b) => a.slot - b.slot);
+    room.game = new Game({
+      seed: crypto.randomInt(1, 2 ** 31 - 1),
+      players: players.map((p) => ({ id: p.id, nick: p.nick, color: p.color, slot: p.slot })),
+      startAt: now + C.COUNTDOWN_MS,
+    });
+    room.phase = 'countdown';
+    for (const p of players) { p.ready = false; if (!p.connected) room.game.setConnected(p.id, false); }
+    this._broadcastRoom(room);
+    // Same payload, same event, for every connected player.
+    this.io.to(room.code).emit('match:start', room.game.fullState(now));
+    this.log(`match started in ${room.code} with ${players.length} players`);
+  }
+
+  requestState(socket) {
+    const ctx = this._ctx(socket);
+    if (!ctx || !ctx.room.game) return fail('WRONG_PHASE');
+    if (ctx.room.phase === 'countdown' || ctx.room.phase === 'active') {
+      socket.emit('game:state', ctx.room.game.fullState(this.now()));
+    }
+    return { ok: true };
+  }
+
+  _gameCtx(socket) {
+    const ctx = this._ctx(socket);
+    if (!ctx || !ctx.room.game || ctx.room.phase !== 'active') return null;
+    return ctx;
+  }
+
+  input(socket, dx, dy) {
+    const ctx = this._gameCtx(socket);
+    if (!ctx) return false;
+    return ctx.room.game.setInput(ctx.player.id, dx, dy, this.now());
+  }
+
+  bomb(socket) { const c = this._gameCtx(socket); return c ? c.room.game.placeBomb(c.player.id, this.now()) : fail('WRONG_PHASE'); }
+  detonate(socket) { const c = this._gameCtx(socket); return c ? c.room.game.detonate(c.player.id, this.now()) : fail('WRONG_PHASE'); }
+  trap(socket) { const c = this._gameCtx(socket); return c ? c.room.game.placeTrap(c.player.id, this.now()) : fail('WRONG_PHASE'); }
+
+  /** Advance every room. Called ~30 times per second by the server (or manually in tests). */
+  tick(now = this.now()) {
+    for (const room of [...this.rooms.values()]) {
+      if (!room.game) continue;
+      if (room.phase === 'countdown' || room.phase === 'active') {
+        // Disconnect grace expiry
+        for (const p of room.players.values()) {
+          if (!p.connected && p.disconnectedAt && now - p.disconnectedAt >= this.graceMs) {
+            room.game.eliminateByDisconnect(p.id, now, 'disconnect');
+            p.disconnectedAt = 0;
+          }
+        }
+        room.game.update(now);
+        const snap = room.game.snapshot(now);
+        snap.ev = room.game.drainEvents();
+        this.io.to(room.code).emit('game:snapshot', snap);
+        if (room.phase === 'countdown' && room.game.phase !== 'countdown') room.phase = 'active';
+        if (room.game.phase === 'over') this._finishMatch(room);
+      }
+    }
+  }
+
+  _finishMatch(room) {
+    room.phase = 'ended';
+    for (const p of [...room.players.values()]) {
+      p.ready = false;
+      if (!p.connected) room.players.delete(p.id); // nobody to wait for
+    }
+    this.io.to(room.code).emit('match:end', room.game.result);
+    this.log(`match ended in ${room.code}: ${room.game.result.reason}`);
+    if (this._deleteIfEmpty(room)) return;
+    this._reassignHost(room);
+    this._broadcastRoom(room);
+  }
+
+  stats() { return { rooms: this.rooms.size, sockets: this.bySocket.size }; }
+}
+
+module.exports = { RoomManager, RateLimiter, sanitizeNick, normalizeCode, COLORS, ERR, CODE_ALPHABET };
+
+};
+__defs["./transport"] = function (module, exports, require, Buffer) {
+
+/**
+ * Serverless transport for the single-file build.
+ *  - The HOST's browser runs the same RoomManager + Game used by the Node server.
+ *  - Guests connect to the host with PeerJS (WebRTC data channels). PeerJS's free public broker is only
+ *    used for the initial handshake; game traffic goes phone-to-phone.
+ *  - The room code is the host's PeerJS id suffix, so "room code" UX is unchanged.
+ * The object exposed as `socket` mimics the small part of the Socket.IO client API that main.js uses.
+ */
+const ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+const PREFIX = 'bblast3d-';
+const ICE = { iceServers: [
+  { urls: 'stun:stun.l.google.com:19302' },
+  { urls: 'stun:stun1.l.google.com:19302' },
+  { urls: 'stun:global.stun.twilio.com:3478' },
+] };
+const clone = (v) => (v === undefined ? undefined : JSON.parse(JSON.stringify(v)));
+const isObj = (v) => v !== null && typeof v === 'object' && !Array.isArray(v);
+
+function createTransport({ Peer, rooms, config, now = () => Date.now(), timers = { setTimeout, clearTimeout, setInterval, clearInterval } }) {
+  const { RoomManager, RateLimiter } = rooms;
+
+  // ------------------------------------------------------------ client-facing socket
+  class ClientSocket {
+    constructor() {
+      this.handlers = new Map(); this.ioHandlers = new Map();
+      this.connected = false; this.pending = new Map(); this.ackSeq = 0;
+      this.route = null; // function(ev, data, ackFn) set by the transport
+      const self = this;
+      this.io = { on(ev, fn) { if (!self.ioHandlers.has(ev)) self.ioHandlers.set(ev, []); self.ioHandlers.get(ev).push(fn); } };
+    }
+    on(ev, fn) { if (!this.handlers.has(ev)) this.handlers.set(ev, []); this.handlers.get(ev).push(fn); return this; }
+    fire(ev, ...args) { for (const f of this.handlers.get(ev) || []) { try { f(...args); } catch (e) { console.error(e); } } }
+    fireIo(ev, ...args) { for (const f of this.ioHandlers.get(ev) || []) { try { f(...args); } catch (e) { console.error(e); } } }
+    emit(ev, data, cb) {
+      if (typeof data === 'function') { cb = data; data = undefined; }
+      this._send(ev, data, cb ? (res) => cb(res) : null, 0);
+    }
+    timeout(ms) {
+      return { emit: (ev, data, cb) => {
+        if (typeof data === 'function') { cb = data; data = undefined; }
+        this._send(ev, data, (res) => cb(null, res), ms, () => cb(new Error('timeout')));
+      } };
+    }
+    _send(ev, data, onAck, ms, onTimeout) {
+      if (!this.connected || !this.route) { if (onTimeout) timers.setTimeout(onTimeout, 0); return; }
+      let id = 0;
+      if (onAck) {
+        id = ++this.ackSeq;
+        const entry = { onAck, timer: null };
+        if (ms && onTimeout) entry.timer = timers.setTimeout(() => { this.pending.delete(id); onTimeout(); }, ms);
+        this.pending.set(id, entry);
+      }
+      this.route(ev, clone(data), id);
+    }
+    resolveAck(id, res) {
+      const e = this.pending.get(id); if (!e) return;
+      this.pending.delete(id); if (e.timer) timers.clearTimeout(e.timer);
+      e.onAck(res);
+    }
+    failPending() {
+      for (const [id, e] of this.pending) { if (e.timer) timers.clearTimeout(e.timer); }
+      this.pending.clear();
+    }
+  }
+
+  // ------------------------------------------------------------ host side
+  class FakeSocket {
+    constructor(id, send, isLocal) {
+      this.id = id; this.rooms = new Set(); this.handlers = new Map(); this.sendFn = send; this.isLocal = isLocal;
+    }
+    on(ev, fn) { this.handlers.set(ev, fn); }
+    emit(ev, payload) { this.sendFn(ev, payload); }
+    join(r) { this.rooms.add(r); }
+    leave(r) { this.rooms.delete(r); }
+    dispatch(ev, data, ack) { const h = typeof ev === 'string' ? this.handlers.get(ev) : null; if (h) h(data, ack); }
+  }
+
+  function installHandlers(socket, manager, limiter) {
+    const guard = (name, perSec, burst) => limiter.take(socket.id, name, perSec, burst);
+    const respond = (cb, p) => { if (typeof cb === 'function') cb(p); };
+    const RATE = { ok: false, code: 'RATE_LIMIT', error: 'Slow down a little.' };
+    socket.on('room:create', (d, cb) => {
+      if (!socket.isLocal) return respond(cb, { ok: false, code: 'BAD_REQUEST', error: 'Only the host creates the room.' });
+      if (!guard('lobby', 1, 5)) return respond(cb, RATE);
+      respond(cb, manager.createRoom(socket, isObj(d) ? d : {}));
+    });
+    socket.on('room:join', (d, cb) => { if (!guard('lobby', 1, 5)) return respond(cb, RATE); respond(cb, manager.joinRoom(socket, d)); });
+    socket.on('session:resume', (d, cb) => { if (!guard('lobby', 1, 5)) return respond(cb, RATE); respond(cb, manager.resume(socket, d)); });
+    socket.on('room:ready', (d, cb) => { if (!guard('ui', 5, 10)) return respond(cb, RATE); respond(cb, manager.setReady(socket, isObj(d) && d.ready === true)); });
+    socket.on('room:start', (d, cb) => { if (!guard('ui', 5, 10)) return respond(cb, RATE); respond(cb, manager.startMatch(socket)); });
+    socket.on('room:rematch', (d, cb) => { if (!guard('ui', 5, 10)) return respond(cb, RATE); respond(cb, manager.rematch(socket)); });
+    socket.on('room:lobby', (d, cb) => { if (!guard('ui', 5, 10)) return respond(cb, RATE); respond(cb, manager.backToLobby(socket)); });
+    socket.on('room:leave', (d, cb) => { if (!guard('ui', 5, 10)) return respond(cb, RATE); respond(cb, manager.leave(socket)); });
+    socket.on('state:request', (d, cb) => { if (!guard('state', 1, 3)) return respond(cb, RATE); respond(cb, manager.requestState(socket)); });
+    socket.on('net:ping', (d, cb) => respond(cb, now()));
+    socket.on('game:input', (d) => { if (guard('input', 60, 30) && isObj(d)) manager.input(socket, d.dx, d.dy); });
+    socket.on('game:bomb', () => { if (guard('act', 8, 8)) manager.bomb(socket); });
+    socket.on('game:detonate', () => { if (guard('act', 8, 8)) manager.detonate(socket); });
+    socket.on('game:trap', () => { if (guard('act', 8, 8)) manager.trap(socket); });
+  }
+
+  class Host {
+    constructor(peer, code, clientSocket) {
+      this.peer = peer; this.code = code; this.client = clientSocket;
+      this.sockets = new Map(); this.n = 0; this.conns = new Set();
+      const self = this;
+      this.io = { to(room) { return { emit(ev, payload) { const p = clone(payload); for (const s of self.sockets.values()) if (s.rooms.has(room)) s.emit(ev, p); } }; } };
+      this.manager = new RoomManager({ io: this.io, now, maxRooms: 1, graceMs: config.RECONNECT_GRACE_MS });
+      this.manager.forcedCode = code;
+      this.limiter = new RateLimiter(now);
+
+      this.local = new FakeSocket('local', (ev, p) => { timers.setTimeout(() => clientSocket.fire(ev, clone(p)), 0); }, true);
+      this.sockets.set(this.local.id, this.local);
+      installHandlers(this.local, this.manager, this.limiter);
+      clientSocket.route = (ev, data, id) => {
+        this.local.dispatch(ev, data, id ? (res) => timers.setTimeout(() => clientSocket.resolveAck(id, clone(res)), 0) : undefined);
+      };
+
+      peer.on('connection', (conn) => this._accept(conn));
+      this.timer = timers.setInterval(() => { try { this.manager.tick(); } catch (e) { console.error(e); } }, Math.round(1000 / config.TICK_HZ));
+    }
+    _accept(conn) {
+      conn.on('open', () => {
+        if (this.sockets.size > config.MAX_PLAYERS + 2) { try { conn.close(); } catch (e) { /* ignore */ } return; }
+        const s = new FakeSocket(`r${++this.n}`, (ev, p) => { if (conn.open) conn.send({ e: ev, d: p }); }, false);
+        this.sockets.set(s.id, s); this.conns.add(conn);
+        installHandlers(s, this.manager, this.limiter);
+        conn.on('data', (msg) => {
+          if (!isObj(msg) || typeof msg.e !== 'string') return;
+          const id = Number.isInteger(msg.i) ? msg.i : 0;
+          s.dispatch(msg.e, msg.d, id ? (res) => { if (conn.open) conn.send({ a: id, r: res }); } : undefined);
+        });
+        const gone = () => {
+          if (!this.sockets.has(s.id)) return;
+          this.sockets.delete(s.id); this.conns.delete(conn);
+          this.manager.handleDisconnect(s); this.limiter.drop(s.id);
+        };
+        conn.on('close', gone); conn.on('error', gone);
+      });
+    }
+    destroy() {
+      timers.clearInterval(this.timer);
+      for (const c of this.conns) { try { c.close(); } catch (e) { /* ignore */ } }
+      try { this.peer.destroy(); } catch (e) { /* ignore */ }
+    }
+  }
+
+  // ------------------------------------------------------------ transport
+  const socket = new ClientSocket();
+  const T = { socket, isHost: false, host: null, peer: null, conn: null, code: null, closing: false, wakeLock: null };
+
+  const waitOpen = (peer, ms, what) => new Promise((resolve, reject) => {
+    let done = false;
+    const t = timers.setTimeout(() => { if (!done) { done = true; reject(new Error(`${what} timed out. Check your internet connection.`)); } }, ms);
+    peer.on('open', () => { if (!done) { done = true; timers.clearTimeout(t); resolve(); } });
+    peer.on('error', (err) => { if (!done) { done = true; timers.clearTimeout(t); reject(err); } });
+  });
+
+  T.prepare = async function prepare(mode, code) {
+    if (!Peer) throw new Error('Could not load the connection library (PeerJS). This version needs internet access.');
+    T.shutdown(true);
+    T.closing = false;
+    if (mode === 'create') {
+      let lastErr = null;
+      for (let i = 0; i < 6; i++) {
+        let c = ''; for (let j = 0; j < 4; j++) c += ALPHABET[Math.floor(Math.random() * ALPHABET.length)];
+        const peer = new Peer(PREFIX + c, { config: ICE });
+        try { await waitOpen(peer, 12000, 'Connecting to the matchmaking service'); } catch (e) {
+          lastErr = e; try { peer.destroy(); } catch (x) { /* ignore */ }
+          if (e && e.type === 'unavailable-id') continue;
+          throw new Error(e && e.type ? `Could not reach the matchmaking service (${e.type}).` : (e.message || 'Could not start the room.'));
+        }
+        T.peer = peer; T.code = c; T.isHost = true;
+        T.host = new Host(peer, c, socket);
+        peer.on('disconnected', () => { try { peer.reconnect(); } catch (e) { /* ignore */ } });
+        socket.connected = true;
+        timers.setTimeout(() => socket.fire('connect'), 0);
+        if (typeof navigator !== 'undefined' && navigator.wakeLock) navigator.wakeLock.request('screen').then((l) => { T.wakeLock = l; }).catch(() => {});
+        return;
+      }
+      throw new Error((lastErr && lastErr.message) || 'Could not create a room. Try again.');
+    }
+    // join
+    T.code = code; T.isHost = false;
+    const peer = new Peer(undefined, { config: ICE });
+    try { await waitOpen(peer, 12000, 'Connecting to the matchmaking service'); } catch (e) {
+      try { peer.destroy(); } catch (x) { /* ignore */ }
+      throw new Error(e && e.type ? `Could not reach the matchmaking service (${e.type}).` : (e.message || 'Could not connect.'));
+    }
+    T.peer = peer;
+    await T._dial();
+  };
+
+  T._dial = function dial() {
+    return new Promise((resolve, reject) => {
+      const peer = T.peer;
+      const conn = peer.connect(PREFIX + T.code, { reliable: true, serialization: 'json' });
+      let opened = false;
+      const t = timers.setTimeout(() => { if (!opened) { try { conn.close(); } catch (e) { /* ignore */ } reject(new Error('No answer from the host. Check the code, and make sure the host keeps the game open.')); } }, 12000);
+      const onPeerErr = (err) => { if (!opened && err && err.type === 'peer-unavailable') { timers.clearTimeout(t); reject(new Error('No room with that code. Check the code and make sure the host is online.')); } };
+      peer.on('error', onPeerErr);
+      conn.on('open', () => {
+        opened = true; timers.clearTimeout(t);
+        T.conn = conn; socket.connected = true;
+        conn.on('data', (msg) => {
+          if (!isObj(msg)) return;
+          if (typeof msg.e === 'string') socket.fire(msg.e, msg.d);
+          else if (Number.isInteger(msg.a)) socket.resolveAck(msg.a, msg.r);
+        });
+        socket.route = (ev, data, id) => { if (conn.open) conn.send({ e: ev, d: data, i: id || undefined }); };
+        conn.on('close', () => T._lost(conn));
+        conn.on('error', () => T._lost(conn));
+        socket.fire('connect');
+        resolve();
+      });
+      conn.on('error', (e) => { if (!opened) { timers.clearTimeout(t); reject(new Error('Connection to the host failed.')); } });
+    });
+  };
+
+  T._lost = function lost(conn) {
+    if (T.conn !== conn || T.closing) return;
+    T.conn = null; socket.connected = false; socket.failPending();
+    socket.fire('disconnect');
+    let attempts = 0;
+    const retry = async () => {
+      if (T.closing || socket.connected) return;
+      if (++attempts > 10) { socket.fire('hostgone'); return; }
+      socket.fireIo('reconnect_attempt', attempts);
+      try {
+        if (T.peer.destroyed) throw new Error('peer destroyed');
+        if (T.peer.disconnected) T.peer.reconnect();
+        await T._dial();
+      } catch (e) { timers.setTimeout(retry, 2000); }
+    };
+    timers.setTimeout(retry, 1500);
+  };
+
+  T.shutdown = function shutdown(quiet) {
+    T.closing = true;
+    if (T.host) { T.host.destroy(); T.host = null; }
+    else if (T.peer) { try { T.peer.destroy(); } catch (e) { /* ignore */ } }
+    T.peer = null; T.conn = null; T.isHost = false;
+    socket.route = null; socket.connected = false; socket.failPending();
+    if (T.wakeLock) { try { T.wakeLock.release(); } catch (e) { /* ignore */ } T.wakeLock = null; }
+    if (!quiet) socket.fire('disconnect');
+  };
+
+  return T;
+}
+
+module.exports = { createTransport, PREFIX };
+
+};
+
+window.BB_P2P = window.BB_P2P || __require('./transport').createTransport({ Peer: window.Peer, rooms: __require('./rooms'), config: __require('./config') });
+// ---- audio.js
+// Tiny WebAudio synthesiser: no audio files, nothing to license or download.
+// The AudioContext is only created/resumed from a user gesture (browser autoplay rules).
+class AudioFX {
+  constructor(settings) {
+    this.settings = settings;
+    this.ctx = null;
+    this.master = null;
+    this.noiseBuf = null;
+    this.lastTick = 0;
+  }
+
+  unlock() {
+    try {
+      if (!this.ctx) {
+        const AC = window.AudioContext || window.webkitAudioContext;
+        if (!AC) return;
+        this.ctx = new AC();
+        this.master = this.ctx.createGain();
+        this.master.gain.value = 0.45;
+        this.master.connect(this.ctx.destination);
+        const len = Math.floor(this.ctx.sampleRate * 0.8);
+        this.noiseBuf = this.ctx.createBuffer(1, len, this.ctx.sampleRate);
+        const d = this.noiseBuf.getChannelData(0);
+        for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+      }
+      if (this.ctx.state === 'suspended') this.ctx.resume();
+    } catch (e) { /* audio is optional */ }
+  }
+
+  get ready() { return !!(this.ctx && this.settings.sound && this.ctx.state === 'running'); }
+
+  tone(freq, endFreq, dur, type = 'square', vol = 0.2, delay = 0) {
+    if (!this.ready) return;
+    const t0 = this.ctx.currentTime + delay;
+    const o = this.ctx.createOscillator();
+    const g = this.ctx.createGain();
+    o.type = type;
+    o.frequency.setValueAtTime(freq, t0);
+    if (endFreq) o.frequency.exponentialRampToValueAtTime(Math.max(1, endFreq), t0 + dur);
+    g.gain.setValueAtTime(vol, t0);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+    o.connect(g); g.connect(this.master);
+    o.start(t0); o.stop(t0 + dur + 0.02);
+  }
+
+  noise(dur, vol = 0.3, cutoff = 1200, delay = 0) {
+    if (!this.ready) return;
+    const t0 = this.ctx.currentTime + delay;
+    const s = this.ctx.createBufferSource();
+    s.buffer = this.noiseBuf;
+    const f = this.ctx.createBiquadFilter();
+    f.type = 'lowpass';
+    f.frequency.setValueAtTime(cutoff, t0);
+    f.frequency.exponentialRampToValueAtTime(100, t0 + dur);
+    const g = this.ctx.createGain();
+    g.gain.setValueAtTime(vol, t0);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+    s.connect(f); f.connect(g); g.connect(this.master);
+    s.start(t0, 0, dur + 0.05);
+  }
+
+  place() { this.tone(260, 420, 0.12, 'triangle', 0.25); }
+  tick() {
+    const now = performance.now();
+    if (now - this.lastTick < 110) return;
+    this.lastTick = now;
+    this.tone(1100, 900, 0.04, 'square', 0.07);
+  }
+  explosion() { this.noise(0.6, 0.55, 1600); this.tone(110, 38, 0.5, 'sawtooth', 0.28); }
+  crate() { this.noise(0.18, 0.25, 4000); }
+  pickup() { this.tone(520, 520, 0.08, 'triangle', 0.22); this.tone(780, 780, 0.08, 'triangle', 0.22, 0.08); this.tone(1040, 1040, 0.14, 'triangle', 0.22, 0.16); }
+  shield() { this.tone(900, 300, 0.25, 'sine', 0.25); }
+  slip() { this.tone(700, 160, 0.4, 'sine', 0.22); }
+  kick() { this.tone(180, 90, 0.1, 'square', 0.2); }
+  elim() { this.tone(440, 70, 0.7, 'sawtooth', 0.25); }
+  beep(high) { this.tone(high ? 880 : 520, high ? 880 : 520, high ? 0.35 : 0.14, 'square', 0.2); }
+  win() { [523, 659, 784, 1046].forEach((f, i) => this.tone(f, f, 0.22, 'triangle', 0.25, i * 0.14)); }
+  lose() { this.tone(330, 220, 0.5, 'triangle', 0.22); }
+  ui() { this.tone(640, 640, 0.05, 'triangle', 0.12); }
+}
+
+// ---- input.js
+// Keyboard + touch joystick + action buttons. Produces intent only (a direction vector and button presses).
+const MOVE_KEYS = {
+  KeyW: [0, -1], ArrowUp: [0, -1], KeyS: [0, 1], ArrowDown: [0, 1],
+  KeyA: [-1, 0], ArrowLeft: [-1, 0], KeyD: [1, 0], ArrowRight: [1, 0],
+};
+const BOMB_KEYS = new Set(['Space']);
+const DET_KEYS = new Set(['KeyE', 'Enter']);
+const TRAP_KEYS = new Set(['KeyQ', 'KeyF', 'ShiftLeft']);
+
+class Controls {
+  constructor(els, handlers) {
+    this.els = els;
+    this.h = handlers; // { move(dx,dy), bomb(), detonate(), trap() }
+    this.enabled = false;
+    this.keys = new Set();
+    this.joy = { id: null, cx: 0, cy: 0, dx: 0, dy: 0 };
+    this.radius = 55;
+    this._bind();
+  }
+
+  setEnabled(on) {
+    this.enabled = on;
+    this.els.controls.classList.toggle('off', !on);
+    if (!on) this.reset();
+  }
+
+  /** Release every held input and tell the game we stopped. */
+  reset() {
+    this.keys.clear();
+    this._endJoy();
+    for (const b of [this.els.bomb, this.els.det, this.els.trap]) b.classList.remove('active');
+    this.h.move(0, 0);
+  }
+
+  _emitMove() {
+    let x = 0, y = 0;
+    for (const k of this.keys) { const v = MOVE_KEYS[k]; if (v) { x += v[0]; y += v[1]; } }
+    if (x === 0 && y === 0) { x = this.joy.dx; y = this.joy.dy; }
+    const len = Math.hypot(x, y);
+    if (len > 1) { x /= len; y /= len; }
+    this.h.move(Math.round(x * 100) / 100, Math.round(y * 100) / 100);
+  }
+
+  _bind() {
+    window.addEventListener('keydown', (e) => {
+      if (!this.enabled || e.metaKey || e.ctrlKey || e.altKey) return;
+      const c = e.code;
+      if (MOVE_KEYS[c]) { this.keys.add(c); this._emitMove(); e.preventDefault(); return; }
+      if (e.repeat) { if (BOMB_KEYS.has(c) || DET_KEYS.has(c) || TRAP_KEYS.has(c)) e.preventDefault(); return; }
+      if (BOMB_KEYS.has(c)) { this.h.bomb(); e.preventDefault(); }
+      else if (DET_KEYS.has(c)) { this.h.detonate(); e.preventDefault(); }
+      else if (TRAP_KEYS.has(c)) { this.h.trap(); e.preventDefault(); }
+    });
+    window.addEventListener('keyup', (e) => {
+      if (MOVE_KEYS[e.code] && this.keys.delete(e.code)) this._emitMove();
+    });
+    window.addEventListener('blur', () => this.reset());
+    document.addEventListener('visibilitychange', () => { if (document.hidden) this.reset(); });
+
+    // Floating joystick: appears where the thumb lands inside the left zone.
+    const zone = this.els.zone;
+    zone.addEventListener('pointerdown', (e) => {
+      if (!this.enabled || this.joy.id !== null) return;
+      e.preventDefault();
+      const r = zone.getBoundingClientRect();
+      this.joy.id = e.pointerId;
+      this.joy.cx = e.clientX; this.joy.cy = e.clientY;
+      this.els.base.style.left = `${e.clientX - r.left}px`;
+      this.els.base.style.top = `${e.clientY - r.top}px`;
+      this.els.base.hidden = false;
+      this.els.knob.style.transform = 'translate(0px, 0px)';
+      try { zone.setPointerCapture(e.pointerId); } catch (err) { /* ignore */ }
+      this._moveJoy(e);
+    });
+    zone.addEventListener('pointermove', (e) => { if (e.pointerId === this.joy.id) { e.preventDefault(); this._moveJoy(e); } });
+    const end = (e) => { if (e.pointerId === this.joy.id) { this._endJoy(); this._emitMove(); } };
+    zone.addEventListener('pointerup', end);
+    zone.addEventListener('pointercancel', end);
+    zone.addEventListener('lostpointercapture', end);
+    zone.addEventListener('contextmenu', (e) => e.preventDefault());
+
+    const press = (el, fn) => {
+      el.addEventListener('pointerdown', (e) => {
+        if (!this.enabled) return;
+        e.preventDefault();
+        el.classList.add('active');
+        fn();
+      });
+      const up = () => el.classList.remove('active');
+      el.addEventListener('pointerup', up);
+      el.addEventListener('pointercancel', up);
+      el.addEventListener('pointerleave', up);
+      el.addEventListener('contextmenu', (e) => e.preventDefault());
+    };
+    press(this.els.bomb, () => this.h.bomb());
+    press(this.els.det, () => this.h.detonate());
+    press(this.els.trap, () => this.h.trap());
+
+    // Stop iOS pinch-zoom / double-tap zoom and page scrolling while playing.
+    for (const ev of ['gesturestart', 'gesturechange', 'gestureend']) document.addEventListener(ev, (e) => e.preventDefault());
+    document.addEventListener('touchmove', (e) => { if (this.enabled) e.preventDefault(); }, { passive: false });
+  }
+
+  _moveJoy(e) {
+    let dx = e.clientX - this.joy.cx, dy = e.clientY - this.joy.cy;
+    const len = Math.hypot(dx, dy);
+    const clamped = Math.min(len, this.radius);
+    const nx = len > 0 ? dx / len : 0, ny = len > 0 ? dy / len : 0;
+    this.els.knob.style.transform = `translate(${nx * clamped}px, ${ny * clamped}px)`;
+    const mag = Math.min(1, len / this.radius);
+    const dead = 0.22;
+    const eff = mag < dead ? 0 : (mag - dead) / (1 - dead);
+    this.joy.dx = nx * eff; this.joy.dy = ny * eff;
+    this._emitMove();
+  }
+
+  _endJoy() {
+    if (this.joy.id === null) return;
+    const zone = this.els.zone;
+    try { zone.releasePointerCapture(this.joy.id); } catch (err) { /* ignore */ }
+    this.joy.id = null; this.joy.dx = 0; this.joy.dy = 0;
+    this.els.base.hidden = true;
+  }
+
+  setAvailability({ det, trap }) {
+    this.els.det.hidden = !det;
+    this.els.trap.hidden = !trap;
+  }
+}
+
+// ---- scene.js
+
+// Coordinate system: logical grid cell (cx, cy) with float positions in cell units maps to
+//   world X = x - cols/2,  world Z = y - rows/2,  world Y = up.
+// Cell (0,0) is the top-left (far-left) corner as seen by the camera. Visual state is never used for game logic.
+
+const DEG = Math.PI / 180;
+const TILE = 0, WALL = 1, CRATE = 2;
+const MAX_FLAMES = 160;
+const MAX_PARTICLES = 520;
+const SNAP_DELAY_MS = 100;
+
+const TYPE_COLORS = { bomb: 0x222233, range: 0xff8a2b, speed: 0x32d9ff, shield: 0x4da3ff, detonator: 0xff4d4d, banana: 0xffd43b, kick: 0x5de08b };
+
+class GameScene {
+  constructor(canvas, settings) {
+    this.canvas = canvas;
+    this.settings = settings;
+    this.renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
+    this.renderer.setClearColor(0x0c2a33);
+    this.scene = new THREE.Scene();
+    this.scene.fog = new THREE.Fog(0x0c2a33, 28, 70);
+    this.camera = new THREE.PerspectiveCamera(38, 1, 0.1, 120);
+    this.maxDpr = 2;
+    this.dpr = Math.min(window.devicePixelRatio || 1, this.maxDpr);
+    this.frameAvg = 16;
+    this.frameCount = 0;
+
+    this.hemi = new THREE.HemisphereLight(0xffffff, 0x77a58b, 1.9);
+    this.sun = new THREE.DirectionalLight(0xfff0c8, 2.3);
+    this.sun.position.set(6, 16, 9);
+    this.scene.add(this.hemi, this.sun, this.sun.target);
+
+    this._makeShared();
+    this.dynamic = new THREE.Group(); // everything that belongs to the current match
+    this.scene.add(this.dynamic);
+
+    this.cols = 13; this.rows = 11;
+    this.grid = new Uint8Array(0);
+    this.players = new Map(); this.bombViews = new Map(); this.upViews = new Map(); this.trapViews = new Map();
+    this.snaps = []; this.latest = null; this.latestAt = 0;
+    this.localId = null;
+    this.camTarget = new THREE.Vector3();
+    this._tmpTarget = new THREE.Vector3();
+    this.shake = 0;
+    this.celebrate = null;
+    this.crateCount = 0;
+    this.flameFree = []; this.flameActive = [];
+    this.crateAnims = [];
+    this.dummy = new THREE.Object3D();
+    this.disposables = [];
+    this.pIdx = 0;
+    this.hasMatch = false;
+    this.resize();
+  }
+
+  // ------------------------------------------------------------------ shared resources
+
+  _makeShared() {
+    const g = this.geo = {
+      box: new THREE.BoxGeometry(1, 1, 1),
+      tile: new THREE.BoxGeometry(1, 0.2, 1),
+      sphere: new THREE.SphereGeometry(0.5, 14, 10),
+      cyl: new THREE.CylinderGeometry(0.5, 0.5, 1, 10),
+      cone: new THREE.ConeGeometry(0.5, 1, 8),
+      plane: new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2),
+      circle: new THREE.CircleGeometry(0.5, 18).rotateX(-Math.PI / 2),
+      ring: new THREE.RingGeometry(0.36, 0.5, 22).rotateX(-Math.PI / 2),
+      ico: new THREE.IcosahedronGeometry(0.5, 0),
+      oct: new THREE.OctahedronGeometry(0.5, 0),
+    };
+    const curve = new THREE.CatmullRomCurve3([
+      new THREE.Vector3(0, 0.12, 0), new THREE.Vector3(0.1, 0.36, 0),
+      new THREE.Vector3(0.13, 0.64, 0), new THREE.Vector3(0.02, 0.9, 0),
+    ]);
+    g.banana = new THREE.TubeGeometry(curve, 10, 0.2, 7, false);
+    g.peel = new THREE.TubeGeometry(new THREE.CatmullRomCurve3([
+      new THREE.Vector3(-0.3, 0, 0.0), new THREE.Vector3(-0.1, 0.1, 0.12), new THREE.Vector3(0.12, 0.1, 0.12), new THREE.Vector3(0.3, 0, 0.0),
+    ]), 8, 0.1, 6, false);
+
+    const L = (color, extra = {}) => new THREE.MeshLambertMaterial({ color, flatShading: true, ...extra });
+    this.mat = {
+      floorA: L(0xf3e3b0), floorB: L(0xe6d29a),
+      border: L(0x2c5a6e), pillar: L(0x6b63d9),
+      crate: L(0xc98a4b), band: L(0x7a4a1f),
+      ground: L(0x2f7d5b), trunk: L(0x7a4a1f), leaf: L(0x39b36b), rock: L(0x8a93a0), leaf2: L(0x2a9a5a),
+      bomb: L(0x1d1d2b), cap: L(0x555566), fuse: L(0x8a5a2b),
+      spark: new THREE.MeshBasicMaterial({ color: 0xffb02e }),
+      white: L(0xffffff), black: L(0x15151f), stem: L(0x6b4a12), shoe: L(0x3a2a1a),
+      flameArm: new THREE.MeshBasicMaterial({ color: 0xff7a1a }),
+      flameCenter: new THREE.MeshBasicMaterial({ color: 0xfff3b0 }),
+      danger: new THREE.MeshBasicMaterial({ color: 0xff3b3b, transparent: true, opacity: 0.3, depthWrite: false }),
+      dangerHot: new THREE.MeshBasicMaterial({ color: 0xff1f1f, transparent: true, opacity: 0.55, depthWrite: false }),
+      shadow: new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.25, depthWrite: false }),
+      shield: new THREE.MeshBasicMaterial({ color: 0x66c2ff, transparent: true, opacity: 0.35, depthWrite: false }),
+      peel: L(0xffe14d), baseDisc: L(0xfff6dc),
+    };
+
+    // Fixed-size particle pool (never grows).
+    const pos = new Float32Array(MAX_PARTICLES * 3);
+    const col = new Float32Array(MAX_PARTICLES * 3);
+    for (let i = 0; i < MAX_PARTICLES; i++) pos[i * 3 + 1] = -100;
+    this.pPos = pos; this.pCol = col;
+    this.pVel = new Float32Array(MAX_PARTICLES * 3);
+    this.pLife = new Float32Array(MAX_PARTICLES);
+    this.pMax = new Float32Array(MAX_PARTICLES);
+    this.pBase = new Float32Array(MAX_PARTICLES * 3);
+    const pg = new THREE.BufferGeometry();
+    pg.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    pg.setAttribute('color', new THREE.BufferAttribute(col, 3));
+    this.particles = new THREE.Points(pg, new THREE.PointsMaterial({ size: 0.2, vertexColors: true, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, sizeAttenuation: true }));
+    this.particles.frustumCulled = false;
+    this.scene.add(this.particles);
+  }
+
+  _applyQuality() {
+    const q = this.settings.quality;
+    const coarse = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
+    const high = q === 'high' || (q === 'auto' && !coarse);
+    this.maxDpr = q === 'low' ? 1.25 : (high ? 2 : 1.5);
+    this.dpr = Math.min(window.devicePixelRatio || 1, this.maxDpr);
+    this.renderer.setPixelRatio(this.dpr);
+    this.renderer.shadowMap.enabled = high;
+    this.renderer.shadowMap.type = THREE.PCFShadowMap;
+    this.sun.castShadow = high;
+    if (high) {
+      const s = this.sun.shadow;
+      s.mapSize.set(1024, 1024);
+      const r = Math.max(this.cols, this.rows) * 0.62;
+      Object.assign(s.camera, { left: -r, right: r, top: r, bottom: -r, near: 1, far: 40 });
+      s.camera.updateProjectionMatrix();
+      s.bias = -0.0005;
+    }
+    this.shadowsOn = high;
+    this.resize();
+  }
+
+  // ------------------------------------------------------------------ match setup / teardown
+
+  cellX(cx) { return cx - this.cols / 2; }
+  cellZ(cy) { return cy - this.rows / 2; }
+
+  clearMatch() {
+    for (const v of this.bombViews.values()) v.bodyMat.dispose();
+    for (const v of this.upViews.values()) v.mats.forEach((m) => m.dispose());
+    for (const d of this.disposables) { if (d.dispose) d.dispose(); }
+    this.disposables.length = 0;
+    this.dynamic.clear();
+    this.players.clear(); this.bombViews.clear(); this.upViews.clear(); this.trapViews.clear();
+    this.flameFree.length = 0; this.flameActive.length = 0; this.crateAnims.length = 0;
+    this.snaps.length = 0; this.latest = null; this.celebrate = null;
+    for (let i = 0; i < MAX_PARTICLES; i++) { this.pLife[i] = 0; this.pPos[i * 3 + 1] = -100; }
+    this.hasMatch = false;
+  }
+
+  setup(payload, localId) {
+    this.clearMatch();
+    this.localId = localId;
+    this.cols = payload.config.cols; this.rows = payload.config.rows;
+    this.cfg = payload.config;
+    this.grid = Uint8Array.from(payload.grid);
+    this._applyQuality();
+    const G = this.geo, M = this.mat, dummy = this.dummy;
+    const sh = this.shadowsOn;
+
+    // ground + floor tiles (two instanced meshes for the checker pattern)
+    const ground = new THREE.Mesh(G.plane, M.ground);
+    ground.scale.set(80, 1, 80); ground.position.y = -0.3;
+    this.dynamic.add(ground);
+    let nA = 0, nB = 0;
+    for (let y = 0; y < this.rows; y++) for (let x = 0; x < this.cols; x++) if (this.grid[y * this.cols + x] !== WALL) ((x + y) % 2 ? nB++ : nA++);
+    const floorA = new THREE.InstancedMesh(G.tile, M.floorA, Math.max(1, nA));
+    const floorB = new THREE.InstancedMesh(G.tile, M.floorB, Math.max(1, nB));
+    floorA.receiveShadow = floorB.receiveShadow = sh;
+    let ia = 0, ib = 0;
+    // walls: border and pillars get different colours
+    let nBorder = 0, nPillar = 0;
+    for (let y = 0; y < this.rows; y++) for (let x = 0; x < this.cols; x++) {
+      if (this.grid[y * this.cols + x] !== WALL) continue;
+      (x === 0 || y === 0 || x === this.cols - 1 || y === this.rows - 1) ? nBorder++ : nPillar++;
+    }
+    const wallB = new THREE.InstancedMesh(G.box, M.border, Math.max(1, nBorder));
+    const wallP = new THREE.InstancedMesh(G.box, M.pillar, Math.max(1, nPillar));
+    wallB.castShadow = wallP.castShadow = sh; wallB.receiveShadow = wallP.receiveShadow = sh;
+    let iwb = 0, iwp = 0;
+    // crates: body + band, both instanced
+    let nCrate = 0;
+    for (let i = 0; i < this.grid.length; i++) if (this.grid[i] === CRATE) nCrate++;
+    this.crateBody = new THREE.InstancedMesh(G.box, M.crate, Math.max(1, nCrate));
+    this.crateBand = new THREE.InstancedMesh(G.box, M.band, Math.max(1, nCrate));
+    this.crateBody.castShadow = sh; this.crateBody.receiveShadow = sh;
+    this.crateIndex = new Map();
+    let ic = 0;
+
+    for (let y = 0; y < this.rows; y++) {
+      for (let x = 0; x < this.cols; x++) {
+        const t = this.grid[y * this.cols + x];
+        const wx = this.cellX(x) + 0.5, wz = this.cellZ(y) + 0.5;
+        if (t !== WALL) {
+          dummy.position.set(wx, -0.1, wz); dummy.scale.set(1, 1, 1); dummy.rotation.set(0, 0, 0); dummy.updateMatrix();
+          if ((x + y) % 2) floorB.setMatrixAt(ib++, dummy.matrix); else floorA.setMatrixAt(ia++, dummy.matrix);
+        } else {
+          dummy.position.set(wx, 0.55, wz); dummy.scale.set(1, 1.1, 1); dummy.rotation.set(0, 0, 0); dummy.updateMatrix();
+          if (x === 0 || y === 0 || x === this.cols - 1 || y === this.rows - 1) wallB.setMatrixAt(iwb++, dummy.matrix);
+          else wallP.setMatrixAt(iwp++, dummy.matrix);
+        }
+        if (t === CRATE) {
+          this.crateIndex.set(y * this.cols + x, ic);
+          this._setCrateMatrices(ic, wx, wz, 1);
+          ic++;
+        }
+      }
+    }
+    for (const m of [floorA, floorB, wallB, wallP, this.crateBody, this.crateBand]) { m.instanceMatrix.needsUpdate = true; this.dynamic.add(m); this.disposables.push(m); }
+    this.crateCount = nCrate;
+
+    // danger overlay planes, one per walkable cell
+    this.dangerMeshes = new Array(this.grid.length).fill(null);
+    for (let y = 0; y < this.rows; y++) for (let x = 0; x < this.cols; x++) {
+      if (this.grid[y * this.cols + x] === WALL) continue;
+      const m = new THREE.Mesh(G.plane, M.danger);
+      m.scale.set(0.96, 1, 0.96); m.position.set(this.cellX(x) + 0.5, 0.012, this.cellZ(y) + 0.5); m.visible = false;
+      this.dangerMeshes[y * this.cols + x] = m; this.dynamic.add(m);
+    }
+    // flame pool
+    for (let i = 0; i < MAX_FLAMES; i++) {
+      const m = new THREE.Mesh(G.box, M.flameArm); m.visible = false; this.dynamic.add(m); this.flameFree.push(m);
+    }
+
+    this._decorate();
+
+    // players
+    for (const meta of payload.players) this.players.set(meta.id, this._buildPlayer(meta));
+    this.hasMatch = true;
+    this.sun.target.position.set(0, 0, 0);
+    for (const f of payload.flames || []) this._spawnFlames(f.cells, [], f.ms, this.cfg.flameMs);
+    this.pushSnapshot(payload.snap);
+    this.resize();
+    // start camera centred
+    this.camTarget.set(0, 0, 0.3);
+  }
+
+  _setCrateMatrices(i, wx, wz, s) {
+    const d = this.dummy;
+    d.rotation.set(0, 0, 0);
+    d.position.set(wx, 0.45 * s, wz); d.scale.set(0.9 * s, 0.9 * s, 0.9 * s); d.updateMatrix();
+    this.crateBody.setMatrixAt(i, d.matrix);
+    d.position.set(wx, 0.45 * s, wz); d.scale.set(0.97 * s, 0.14 * s, 0.97 * s); d.updateMatrix();
+    this.crateBand.setMatrixAt(i, d.matrix);
+    this.crateBody.instanceMatrix.needsUpdate = true; this.crateBand.instanceMatrix.needsUpdate = true;
+  }
+
+  _decorate() {
+    // Props outside the combat area (purely visual; deterministic positions).
+    const G = this.geo, M = this.mat;
+    const hx = this.cols / 2 + 1.6, hz = this.rows / 2 + 1.6;
+    let k = 0;
+    const place = (x, z) => {
+      k++;
+      if (k % 4 === 0) {
+        const r = new THREE.Mesh(G.ico, M.rock); r.scale.set(0.9, 0.6, 0.8); r.position.set(x, 0.1, z); r.rotation.y = k; this.dynamic.add(r);
+      } else {
+        const t = new THREE.Mesh(G.cyl, M.trunk); t.scale.set(0.22, 1.5 + (k % 3) * 0.2, 0.22); t.position.set(x, 0.6, z);
+        const l = new THREE.Mesh(G.cone, k % 2 ? M.leaf : M.leaf2); l.scale.set(1.5, 1.1, 1.5); l.position.set(x, 1.7 + (k % 3) * 0.2, z);
+        this.dynamic.add(t, l);
+      }
+    };
+    for (let x = -hx; x <= hx + 0.1; x += 2.6) { place(x, -hz - (Math.abs(x) % 2)); place(x + 0.8, hz + (Math.abs(x) % 1.5)); }
+    for (let z = -hz + 2.6; z < hz - 1; z += 2.8) { place(-hx - (Math.abs(z) % 1.5), z); place(hx + (Math.abs(z) % 1.7), z + 0.5); }
+  }
+
+  _makeLabel(text, color) {
+    const c = document.createElement('canvas'); c.width = 256; c.height = 64;
+    const x = c.getContext('2d');
+    x.font = '800 34px "Trebuchet MS", system-ui, sans-serif'; x.textAlign = 'center'; x.textBaseline = 'middle';
+    x.lineWidth = 8; x.strokeStyle = '#10303a'; x.strokeText(text, 128, 34);
+    x.fillStyle = color; x.fillText(text, 128, 34);
+    const tex = new THREE.CanvasTexture(c);
+    tex.colorSpace = THREE.SRGBColorSpace;
+    const mat = new THREE.SpriteMaterial({ map: tex, depthTest: false, transparent: true });
+    const sp = new THREE.Sprite(mat); sp.scale.set(1.7, 0.42, 1); sp.renderOrder = 20;
+    this.disposables.push(tex, mat);
+    return sp;
+  }
+
+  _buildPlayer(meta) {
+    const G = this.geo, M = this.mat, sh = this.shadowsOn;
+    const root = new THREE.Group();
+    const body = new THREE.Group(); root.add(body);
+    const bodyMat = new THREE.MeshLambertMaterial({ color: meta.color, flatShading: true });
+    this.disposables.push(bodyMat);
+    const tube = new THREE.Mesh(G.banana, bodyMat); tube.castShadow = sh; body.add(tube);
+    const stem = new THREE.Mesh(G.cyl, M.stem); stem.scale.set(0.09, 0.16, 0.09); stem.position.set(0.0, 0.98, 0); stem.rotation.z = 0.35; body.add(stem);
+    const tip = new THREE.Mesh(G.sphere, M.stem); tip.scale.set(0.12, 0.12, 0.12); tip.position.set(0, 0.1, 0); body.add(tip);
+    for (const s of [-1, 1]) {
+      const eye = new THREE.Mesh(G.sphere, M.white); eye.scale.set(0.15, 0.17, 0.12); eye.position.set(0.13 + s * 0.085, 0.62, 0.17);
+      const pupil = new THREE.Mesh(G.sphere, M.black); pupil.scale.set(0.07, 0.08, 0.05); pupil.position.set(0.13 + s * 0.085, 0.62, 0.235);
+      body.add(eye, pupil);
+    }
+    const feet = [];
+    for (const s of [-1, 1]) {
+      const f = new THREE.Mesh(G.sphere, M.shoe); f.scale.set(0.16, 0.1, 0.24); f.position.set(0.04 + s * 0.11, 0.05, 0.04); root.add(f); feet.push(f);
+    }
+    const ringMat = new THREE.MeshBasicMaterial({ color: meta.color }); this.disposables.push(ringMat);
+    const ring = new THREE.Mesh(G.ring, ringMat); ring.position.y = 0.03; ring.scale.set(1.15, 1, 1.15); root.add(ring);
+    const blob = new THREE.Mesh(G.circle, M.shadow); blob.position.y = 0.025; blob.scale.set(0.8, 1, 0.8); root.add(blob);
+    const shield = new THREE.Mesh(G.sphere, M.shield); shield.scale.set(1.15, 1.25, 1.15); shield.position.y = 0.55; shield.visible = false; root.add(shield);
+    const label = this._makeLabel(meta.nick, meta.color); label.position.y = 1.6; root.add(label);
+    this.dynamic.add(root);
+    return {
+      id: meta.id, root, body, feet, shield, ring, label, rx: 0, ry: 0, init: false, phase: 0, yaw: 0,
+      alive: true, dying: -1, slip: false, hidden: false, moving: false,
+    };
+  }
+
+  // ------------------------------------------------------------------ network input
+
+  pushSnapshot(snap) {
+    const now = performance.now();
+    this.snaps.push({ at: now, s: snap });
+    if (this.snaps.length > 10) this.snaps.shift();
+    this.latest = snap; this.latestAt = now;
+    this._syncDiscrete(snap, now);
+  }
+
+  _syncDiscrete(snap, now) {
+    // bombs
+    const seen = new Set();
+    for (const b of snap.b) {
+      seen.add(b.id);
+      let v = this.bombViews.get(b.id);
+      if (!v) v = this._addBomb(b);
+      if (v.cx !== b.x || v.cy !== b.y) { v.cx = b.x; v.cy = b.y; }
+      v.left = b.l; v.at = now;
+    }
+    for (const [id, v] of this.bombViews) if (!seen.has(id)) this._removeBomb(id, v);
+    // power-ups
+    const seenU = new Set();
+    for (const u of snap.u) {
+      seenU.add(u.id);
+      if (!this.upViews.has(u.id)) this._addPowerup(u);
+    }
+    for (const [id, v] of this.upViews) if (!seenU.has(id)) { this.dynamic.remove(v.group); v.mats.forEach((m) => m.dispose()); this.upViews.delete(id); }
+    // traps
+    const seenT = new Set();
+    for (const t of snap.tr) {
+      seenT.add(t.id);
+      if (!this.trapViews.has(t.id)) {
+        const m = new THREE.Mesh(this.geo.peel, this.mat.peel);
+        m.position.set(this.cellX(t.x) + 0.5, 0.1, this.cellZ(t.y) + 0.5); m.rotation.y = (t.id * 1.7) % 6.28; m.scale.set(1.4, 1.2, 1.4);
+        this.dynamic.add(m); this.trapViews.set(t.id, m);
+      }
+    }
+    for (const [id, m] of this.trapViews) if (!seenT.has(id)) { this.dynamic.remove(m); this.trapViews.delete(id); }
+    // players: status flags
+    for (const p of snap.p) {
+      const v = this.players.get(p.id);
+      if (!v) continue;
+      v.shield.visible = !!p.sh && !!p.a;
+      v.slip = !!p.sl;
+      if (!p.a && v.alive) { v.alive = false; if (v.dying < 0) v.dying = 0; }
+    }
+    this._updateDanger(snap);
+  }
+
+  _updateDanger(snap) {
+    if (snap.b.length === 0 && !this.hadDanger) return;
+    this.hadDanger = snap.b.length > 0;
+    const cols = this.cols, rows = this.rows;
+    if (!this.dangerLeft || this.dangerLeft.length !== this.grid.length) this.dangerLeft = new Float32Array(this.grid.length);
+    const dl = this.dangerLeft; dl.fill(-1);
+    const bombAt = new Map();
+    for (const b of snap.b) bombAt.set(b.y * cols + b.x, b);
+    const rangeOf = (b) => { const p = snap.p.find((q) => q.id === b.o); return p ? p.rg : 2; };
+    // Approximation for display only: ignores chain timing and bombs' own range upgrades after placement.
+    for (const b of snap.b) {
+      const r = rangeOf(b);
+      const mark = (k) => { if (dl[k] < 0 || b.l < dl[k]) dl[k] = b.l; };
+      mark(b.y * cols + b.x);
+      for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+        for (let i = 1; i <= r; i++) {
+          const x = b.x + dx * i, y = b.y + dy * i;
+          if (x < 0 || y < 0 || x >= cols || y >= rows) break;
+          const k = y * cols + x, t = this.grid[k];
+          if (t === WALL) break;
+          mark(k);
+          if (t === CRATE || bombAt.has(k)) break;
+        }
+      }
+    }
+    for (let k = 0; k < dl.length; k++) {
+      const m = this.dangerMeshes[k]; if (!m) continue;
+      if (dl[k] < 0) { m.visible = false; continue; }
+      m.visible = true;
+      m.material = dl[k] < 900 ? this.mat.dangerHot : this.mat.danger;
+    }
+  }
+
+  // ------------------------------------------------------------------ discrete events
+
+  handleEvent(ev) {
+    switch (ev.t) {
+      case 'boom': {
+        for (const [x, y] of ev.origins) {
+          for (const [id, v] of this.bombViews) if (v.cx === x && v.cy === y) this._removeBomb(id, v);
+        }
+        this._spawnFlames(ev.cells, ev.origins, ev.ms, ev.ms);
+        for (const [x, y] of ev.origins) this._burst(this.cellX(x) + 0.5, 0.4, this.cellZ(y) + 0.5, 26, [1, 0.7, 0.2], 4.5, 0.7);
+        this.shake = Math.min(1, this.shake + 0.55);
+        break;
+      }
+      case 'crate': {
+        const k = ev.y * this.cols + ev.x;
+        this.grid[k] = TILE;
+        const i = this.crateIndex.get(k);
+        if (i !== undefined) { this.crateAnims.push({ i, x: ev.x, y: ev.y, t: 0 }); this.crateIndex.delete(k); }
+        this.crateCount--;
+        this._burst(this.cellX(ev.x) + 0.5, 0.5, this.cellZ(ev.y) + 0.5, 12, [0.8, 0.5, 0.2], 3, 0.6);
+        break;
+      }
+      case 'drop': this._burst(this.cellX(ev.x) + 0.5, 0.6, this.cellZ(ev.y) + 0.5, 10, [1, 1, 0.6], 2, 0.8); break;
+      case 'pickup': {
+        const c = new THREE.Color(TYPE_COLORS[ev.k] || 0xffffff);
+        this._burst(this.cellX(ev.x) + 0.5, 0.6, this.cellZ(ev.y) + 0.5, 16, [Math.max(0.4, c.r), Math.max(0.4, c.g), Math.max(0.4, c.b)], 3, 0.7);
+        break;
+      }
+      case 'elim': {
+        const v = this.players.get(ev.id);
+        if (v) {
+          if (v.dying < 0) v.dying = 0;
+          v.alive = false;
+          this._burst(v.root.position.x, 0.7, v.root.position.z, 24, [1, 0.9, 0.3], 4, 0.9);
+        }
+        break;
+      }
+      case 'shield': {
+        const v = this.players.get(ev.id);
+        if (v) this._burst(v.root.position.x, 0.6, v.root.position.z, 18, [0.4, 0.75, 1], 3.5, 0.6);
+        break;
+      }
+      case 'kick': {
+        for (const v of this.bombViews.values()) if (v.cx === ev.x && v.cy === ev.y) { v.pop = 0.0; }
+        break;
+      }
+      default: break;
+    }
+  }
+
+  setWinner(id) { this.celebrate = id ? { id, until: performance.now() + 4500, next: 0 } : null; }
+
+  _spawnFlames(cells, origins, ms, total) {
+    const originSet = new Set(origins.map(([x, y]) => y * this.cols + x));
+    const now = performance.now();
+    for (const [x, y] of cells) {
+      const m = this.flameFree.pop();
+      if (!m) break; // pool exhausted: skip decoration, gameplay is unaffected
+      m.material = originSet.has(y * this.cols + x) ? this.mat.flameCenter : this.mat.flameArm;
+      m.position.set(this.cellX(x) + 0.5, 0.3, this.cellZ(y) + 0.5);
+      m.visible = true;
+      this.flameActive.push({ m, t0: now - (total - ms), dur: total });
+    }
+  }
+
+  _addBomb(b) {
+    const G = this.geo, M = this.mat, sh = this.shadowsOn;
+    const group = new THREE.Group();
+    const bodyMat = new THREE.MeshLambertMaterial({ color: 0x1d1d2b, flatShading: true, emissive: 0x000000 });
+    const body = new THREE.Mesh(G.sphere, bodyMat); body.scale.set(0.74, 0.7, 0.74); body.position.y = 0.4; body.castShadow = sh;
+    const cap = new THREE.Mesh(G.cyl, M.cap); cap.scale.set(0.2, 0.1, 0.2); cap.position.y = 0.78;
+    const fuse = new THREE.Mesh(G.cyl, M.fuse); fuse.scale.set(0.05, 0.3, 0.05); fuse.position.y = 0.88;
+    const spark = new THREE.Mesh(G.sphere, M.spark); spark.scale.set(0.16, 0.16, 0.16); spark.position.y = 1.05;
+    const blob = new THREE.Mesh(G.circle, M.shadow); blob.position.y = 0.02; blob.scale.set(0.8, 1, 0.8);
+    group.add(blob, body, cap, fuse, spark);
+    group.position.set(this.cellX(b.x) + 0.5, 0, this.cellZ(b.y) + 0.5);
+    group.scale.setScalar(0.01);
+    this.dynamic.add(group);
+    const v = { group, body, bodyMat, fuse, spark, cx: b.x, cy: b.y, left: b.l, at: performance.now(), born: performance.now(), pop: -1 };
+    this.bombViews.set(b.id, v);
+    return v;
+  }
+
+  _removeBomb(id, v) { this.dynamic.remove(v.group); v.bodyMat.dispose(); this.bombViews.delete(id); }
+
+  _addPowerup(u) {
+    const G = this.geo, M = this.mat;
+    const group = new THREE.Group();
+    const color = TYPE_COLORS[u.k] || 0xffffff;
+    const base = new THREE.Mesh(G.cyl, M.baseDisc); base.scale.set(0.8, 0.06, 0.8); base.position.y = 0.04;
+    const ringMat = new THREE.MeshBasicMaterial({ color });
+    const ring = new THREE.Mesh(G.ring, ringMat); ring.position.y = 0.08; ring.scale.set(1.5, 1, 1.5);
+    group.add(base, ring);
+    const icon = new THREE.Group(); icon.position.y = 0.55;
+    const mat = new THREE.MeshLambertMaterial({ color, flatShading: true });
+    const add = (geo, sx, sy, sz, px = 0, py = 0, pz = 0, m = mat) => { const o = new THREE.Mesh(geo, m); o.scale.set(sx, sy, sz); o.position.set(px, py, pz); icon.add(o); return o; };
+    switch (u.k) {
+      case 'bomb': add(G.sphere, 0.48, 0.48, 0.48); add(G.cyl, 0.12, 0.2, 0.12, 0, 0.3, 0, M.fuse); add(G.box, 0.5, 0.1, 0.1, 0, 0.0, 0.26, M.white); add(G.box, 0.1, 0.5, 0.1, 0, 0.0, 0.26, M.white); break;
+      case 'range': add(G.cone, 0.36, 0.6, 0.36, 0, 0.05); add(G.cone, 0.36, 0.45, 0.36, 0, -0.25).rotation.x = Math.PI; break;
+      case 'speed': add(G.oct, 0.34, 0.7, 0.34); add(G.oct, 0.22, 0.45, 0.22, 0.12, -0.2, 0); break;
+      case 'shield': add(G.ico, 0.62, 0.7, 0.3); break;
+      case 'detonator': add(G.cyl, 0.5, 0.22, 0.5, 0, -0.1); add(G.cyl, 0.26, 0.2, 0.26, 0, 0.08, 0, M.white); break;
+      case 'banana': { const o = new THREE.Mesh(G.banana, mat); o.scale.set(0.8, 0.8, 0.8); o.position.y = -0.3; icon.add(o); break; }
+      case 'kick': add(G.box, 0.45, 0.3, 0.45, 0, -0.1); add(G.cone, 0.3, 0.4, 0.3, 0, 0.2).rotation.z = -Math.PI / 2; break;
+      default: add(G.sphere, 0.4, 0.4, 0.4);
+    }
+    group.add(icon);
+    group.position.set(this.cellX(u.x) + 0.5, 0, this.cellZ(u.y) + 0.5);
+    this.dynamic.add(group);
+    this.upViews.set(u.id, { group, icon, mats: [mat, ringMat], t: Math.random() * 6 });
+  }
+
+  // ------------------------------------------------------------------ particles
+
+  _burst(x, y, z, n, rgb, speed, life) {
+    const reduce = this.settings.reduceMotion;
+    const count = reduce ? Math.ceil(n / 3) : n;
+    for (let i = 0; i < count; i++) {
+      const k = this.pIdx; this.pIdx = (this.pIdx + 1) % MAX_PARTICLES;
+      const a = Math.random() * Math.PI * 2, e = Math.random() * 1.2;
+      const s = speed * (0.35 + Math.random() * 0.65);
+      this.pPos[k * 3] = x; this.pPos[k * 3 + 1] = y; this.pPos[k * 3 + 2] = z;
+      this.pVel[k * 3] = Math.cos(a) * s; this.pVel[k * 3 + 1] = e * s + 1.2; this.pVel[k * 3 + 2] = Math.sin(a) * s;
+      this.pBase[k * 3] = rgb[0]; this.pBase[k * 3 + 1] = rgb[1]; this.pBase[k * 3 + 2] = rgb[2];
+      this.pLife[k] = this.pMax[k] = life * (0.6 + Math.random() * 0.6);
+    }
+  }
+
+  _updateParticles(dt) {
+    for (let i = 0; i < MAX_PARTICLES; i++) {
+      const l = this.pLife[i];
+      if (l <= 0) continue;
+      const nl = l - dt;
+      if (nl <= 0) { this.pLife[i] = 0; this.pPos[i * 3 + 1] = -100; this.pCol[i * 3] = this.pCol[i * 3 + 1] = this.pCol[i * 3 + 2] = 0; continue; }
+      this.pLife[i] = nl;
+      this.pVel[i * 3 + 1] -= 9 * dt;
+      this.pPos[i * 3] += this.pVel[i * 3] * dt; this.pPos[i * 3 + 1] += this.pVel[i * 3 + 1] * dt; this.pPos[i * 3 + 2] += this.pVel[i * 3 + 2] * dt;
+      if (this.pPos[i * 3 + 1] < 0.02) { this.pPos[i * 3 + 1] = 0.02; this.pVel[i * 3 + 1] *= -0.3; }
+      const f = nl / this.pMax[i];
+      this.pCol[i * 3] = this.pBase[i * 3] * f; this.pCol[i * 3 + 1] = this.pBase[i * 3 + 1] * f; this.pCol[i * 3 + 2] = this.pBase[i * 3 + 2] * f;
+    }
+    this.particles.geometry.attributes.position.needsUpdate = true;
+    this.particles.geometry.attributes.color.needsUpdate = true;
+  }
+
+  // ------------------------------------------------------------------ frame
+
+  resize() {
+    const w = Math.max(1, this.canvas.clientWidth), h = Math.max(1, this.canvas.clientHeight);
+    this.renderer.setPixelRatio(this.dpr);
+    this.renderer.setSize(w, h, false);
+    this.camera.aspect = w / h;
+    const fov = this.camera.fov * DEG;
+    const needV = Math.max(this.rows * 0.94 + 3.4, (this.cols + 2.6) / this.camera.aspect);
+    this.camDist = needV / (2 * Math.tan(fov / 2));
+    this.camera.updateProjectionMatrix();
+  }
+
+  _interpolate(now) {
+    const n = this.snaps.length;
+    if (n === 0) return null;
+    const rt = now - SNAP_DELAY_MS;
+    let a = this.snaps[0], b = null;
+    for (let i = n - 1; i >= 0; i--) {
+      if (this.snaps[i].at <= rt) { a = this.snaps[i]; b = this.snaps[i + 1] || null; break; }
+    }
+    const alpha = b ? Math.min(1, Math.max(0, (rt - a.at) / Math.max(1, b.at - a.at))) : 0;
+    return { a: a.s, b: b ? b.s : null, alpha };
+  }
+
+  render(dt) {
+    if (!this.hasMatch) return;
+    dt = Math.min(dt, 0.1);
+    const now = performance.now();
+    const reduce = this.settings.reduceMotion;
+
+    // adaptive resolution
+    this.frameAvg += (dt * 1000 - this.frameAvg) * 0.05;
+    if (++this.frameCount % 90 === 0) {
+      if (this.frameAvg > 30 && this.dpr > 0.8) { this.dpr = Math.max(0.75, this.dpr - 0.25); this.resize(); }
+    }
+
+    // ---- players
+    const it = this._interpolate(now);
+    const latest = this.latest;
+    if (it) {
+      for (const v of this.players.values()) {
+        const pa = it.a.p.find((q) => q.id === v.id);
+        if (!pa) continue;
+        const pb = it.b ? it.b.p.find((q) => q.id === v.id) : null;
+        let tx = pb ? pa.x + (pb.x - pa.x) * it.alpha : pa.x;
+        let ty = pb ? pa.y + (pb.y - pa.y) * it.alpha : pa.y;
+        if (v.id === this.localId && latest) {
+          const pl = latest.p.find((q) => q.id === v.id);
+          if (pl) { tx = pl.x; ty = pl.y; }
+        }
+        const wx = this.cellX(tx), wz = this.cellZ(ty);
+        const px = v.root.position.x, pz = v.root.position.z;
+        if (!v.init || Math.hypot(wx - px, wz - pz) > 2.5) { v.root.position.x = wx; v.root.position.z = wz; v.init = true; }
+        else {
+          const k = v.id === this.localId ? 1 - Math.exp(-dt * 24) : 1;
+          v.root.position.x += (wx - px) * k; v.root.position.z += (wz - pz) * k;
+        }
+        const moved = Math.hypot(v.root.position.x - px, v.root.position.z - pz) / Math.max(dt, 1e-3);
+        v.moving = moved > 0.4;
+        const pf = (latest || it.a).p.find((q) => q.id === v.id) || pa;
+        if (pf.fx || pf.fy) {
+          const target = Math.atan2(pf.fx, pf.fy);
+          let d = target - v.yaw; while (d > Math.PI) d -= Math.PI * 2; while (d < -Math.PI) d += Math.PI * 2;
+          v.yaw += d * (1 - Math.exp(-dt * 14));
+        }
+      }
+    }
+    for (const v of this.players.values()) this._animatePlayer(v, dt, now, reduce);
+
+    // ---- bombs
+    for (const v of this.bombViews.values()) {
+      const left = Math.max(0, v.left - (now - v.at));
+      const frac = Math.min(1, left / (this.cfg ? this.cfg.fuseMs : 2500));
+      const age = (now - v.born) / 1000;
+      const pop = Math.min(1, age * 7);
+      const rate = 6 + (1 - frac) * 22;
+      const pulse = 1 + 0.07 * Math.sin(age * rate) * (reduce ? 0.4 : 1);
+      v.group.scale.setScalar(Math.max(0.01, (0.4 + 0.6 * easeOutBack(pop)) * pulse));
+      const tx = this.cellX(v.cx) + 0.5, tz = this.cellZ(v.cy) + 0.5;
+      v.group.position.x += (tx - v.group.position.x) * (1 - Math.exp(-dt * 20));
+      v.group.position.z += (tz - v.group.position.z) * (1 - Math.exp(-dt * 20));
+      v.fuse.scale.y = 0.08 + 0.3 * frac; v.fuse.position.y = 0.78 + v.fuse.scale.y * 0.5;
+      v.spark.position.y = 0.78 + v.fuse.scale.y + 0.02;
+      v.spark.scale.setScalar(0.12 + 0.07 * (0.5 + 0.5 * Math.sin(now * 0.05 + v.born)));
+      const hot = left < 900 && Math.floor(now / 90) % 2 === 0;
+      v.bodyMat.emissive.setHex(hot ? 0x7a1010 : 0x000000);
+      if (left < 1000 && this.onTick) this.onTick();
+    }
+
+    // ---- power-ups, flames
+    for (const u of this.upViews.values()) {
+      u.t += dt;
+      u.icon.position.y = 0.55 + (reduce ? 0 : Math.sin(u.t * 3) * 0.08);
+      u.icon.rotation.y += dt * (reduce ? 0.6 : 2);
+    }
+    for (let i = this.flameActive.length - 1; i >= 0; i--) {
+      const f = this.flameActive[i];
+      const frac = (now - f.t0) / f.dur;
+      if (frac >= 1) { f.m.visible = false; this.flameFree.push(f.m); this.flameActive.splice(i, 1); continue; }
+      const grow = frac < 0.18 ? frac / 0.18 : 1 - ((frac - 0.18) / 0.82) * 0.75;
+      f.m.scale.set(0.9 * (0.7 + 0.3 * grow), 0.12 + 0.62 * grow, 0.9 * (0.7 + 0.3 * grow));
+      f.m.position.y = f.m.scale.y * 0.5;
+    }
+    // crate break animation
+    for (let i = this.crateAnims.length - 1; i >= 0; i--) {
+      const a = this.crateAnims[i];
+      a.t += dt / 0.18;
+      const s = Math.max(0, 1 - a.t);
+      this._setCrateMatrices(a.i, this.cellX(a.x) + 0.5, this.cellZ(a.y) + 0.5, s < 0.02 ? 0.0001 : s);
+      if (a.t >= 1) this.crateAnims.splice(i, 1);
+    }
+    // danger overlay pulse
+    this.mat.danger.opacity = 0.22 + 0.12 * Math.sin(now * 0.008);
+    this.mat.dangerHot.opacity = 0.45 + 0.2 * Math.sin(now * 0.02);
+
+    // celebration confetti
+    if (this.celebrate && now < this.celebrate.until && !reduce && now >= this.celebrate.next) {
+      const v = this.players.get(this.celebrate.id);
+      if (v) {
+        const r = Math.random();
+        this._burst(v.root.position.x, 1.5, v.root.position.z, 14, [r, 1 - r * 0.6, 0.4 + r * 0.5], 4, 1.4);
+        this.celebrate.next = now + 140;
+      }
+    }
+
+    this._updateParticles(dt);
+    this._updateCamera(dt, now, reduce);
+    this.renderer.render(this.scene, this.camera);
+  }
+
+  _animatePlayer(v, dt, now, reduce) {
+    const celebrating = this.celebrate && this.celebrate.id === v.id && now < this.celebrate.until;
+    if (v.dying >= 0) {
+      v.dying += dt / 0.9;
+      const s = Math.max(0.001, 1 - v.dying);
+      v.root.scale.setScalar(s);
+      v.root.rotation.y += dt * 14;
+      v.root.position.y = Math.sin(Math.min(1, v.dying) * Math.PI) * 0.8;
+      if (v.dying >= 1) { v.root.visible = false; v.dying = 99; }
+      return;
+    }
+    if (!v.alive) { v.root.visible = false; return; }
+    const rate = v.moving ? 12 : 3;
+    v.phase += dt * rate;
+    const amp = reduce ? 0.4 : 1;
+    let bob = v.moving ? Math.abs(Math.sin(v.phase)) * 0.09 * amp : Math.sin(v.phase) * 0.015 * amp;
+    if (celebrating) bob = Math.abs(Math.sin(now * 0.012)) * 0.5;
+    v.root.position.y = bob;
+    v.root.rotation.y = v.slip ? v.root.rotation.y + dt * 14 : (celebrating ? now * 0.006 : v.yaw);
+    v.body.rotation.z = v.moving ? Math.sin(v.phase) * 0.12 * amp : 0;
+    v.body.rotation.x = v.slip ? -0.5 : (v.moving ? 0.1 : 0);
+    v.feet[0].position.z = 0.04 + (v.moving ? Math.sin(v.phase) * 0.14 : 0);
+    v.feet[1].position.z = 0.04 + (v.moving ? -Math.sin(v.phase) * 0.14 : 0);
+    if (v.shield.visible) v.shield.scale.setScalar(1.15 + Math.sin(now * 0.008) * 0.04);
+    v.label.visible = true;
+  }
+
+  _updateCamera(dt, now, reduce) {
+    const target = this._tmpTarget.set(0, 0, 0.3);
+    const me = this.localId && this.players.get(this.localId);
+    if (me && me.alive && me.init) { target.x = me.root.position.x * 0.12; target.z = 0.3 + me.root.position.z * 0.1; }
+    this.camTarget.lerp(target, 1 - Math.exp(-dt * 3));
+    const el = 63 * DEG;
+    const d = this.camDist;
+    let sx = 0, sy = 0;
+    if (this.shake > 0.001) {
+      if (this.settings.shake && !reduce) { sx = (Math.random() - 0.5) * this.shake * 0.35; sy = (Math.random() - 0.5) * this.shake * 0.25; }
+      this.shake *= Math.exp(-dt * 7);
+    }
+    this.camera.position.set(this.camTarget.x + sx, this.camTarget.y + d * Math.sin(el) + sy, this.camTarget.z + d * Math.cos(el));
+    this.camera.lookAt(this.camTarget);
+    this.sun.position.set(6, 16, 9);
+  }
+
+  dispose() {
+    this.clearMatch();
+    for (const g of Object.values(this.geo)) g.dispose();
+    for (const m of Object.values(this.mat)) m.dispose();
+    this.particles.geometry.dispose(); this.particles.material.dispose();
+    this.renderer.dispose();
+  }
+}
+
+function easeOutBack(t) { const c1 = 1.70158, c3 = c1 + 1; return 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2); }
+
+// ---- main.js
+
+
+
+const $ = (id) => document.getElementById(id);
+// The single-file (serverless) build provides window.BB_P2P; the Node server build leaves it undefined.
+const transport = window.BB_P2P || null;
+
+// ---------------------------------------------------------------- settings
+const SETTINGS_KEY = 'bb3d.settings';
+const settings = Object.assign(
+  { sound: true, shake: true, reduceMotion: window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches, quality: 'auto' },
+  (() => { try { return JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}'); } catch (e) { return {}; } })(),
+);
+function saveSettings() { try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings)); } catch (e) { /* storage may be blocked */ } }
+function applySettingsToUi() {
+  $('set-sound').checked = settings.sound;
+  $('set-shake').checked = settings.shake;
+  $('set-motion').checked = settings.reduceMotion;
+  $('set-quality').value = settings.quality;
+  document.body.classList.toggle('reduce-motion', settings.reduceMotion);
+}
+applySettingsToUi();
+$('set-sound').addEventListener('change', (e) => { settings.sound = e.target.checked; saveSettings(); audio.unlock(); audio.ui(); });
+$('set-shake').addEventListener('change', (e) => { settings.shake = e.target.checked; saveSettings(); });
+$('set-motion').addEventListener('change', (e) => { settings.reduceMotion = e.target.checked; saveSettings(); applySettingsToUi(); });
+$('set-quality').addEventListener('change', (e) => { settings.quality = e.target.value; saveSettings(); toast('Graphics quality applies from the next match.'); });
+
+const audio = new AudioFX(settings);
+for (const ev of ['pointerdown', 'keydown', 'touchend']) window.addEventListener(ev, () => audio.unlock(), { passive: true });
+
+// ---------------------------------------------------------------- state
+const SESSION_KEY = 'bb3d.session';
+const S = {
+  screen: 'menu', me: null, code: null, room: null, scene: null, inMatch: false, matchActive: false,
+  localAlive: true, lastCount: -1, wentActive: false, results: null, resultsTimer: null, running: false,
+  lastResync: 0, ended: false, ping: null, everConnected: false, pending: false,
+};
+const fatal = (msg) => { const f = $('fatal'); f.textContent = msg; f.hidden = false; };
+if (typeof io === 'undefined' && !transport) fatal('Could not load the multiplayer library. Open this game from the server\'s web address and check your connection.');
+
+const socket = transport ? transport.socket : (typeof io === 'undefined' ? null : io({ transports: ['websocket', 'polling'], reconnectionDelayMax: 3000 }));
+
+// ---------------------------------------------------------------- small UI helpers
+function showScreen(name) {
+  S.screen = name;
+  for (const id of ['menu', 'lobby', 'game', 'results']) $(`screen-${id}`).classList.toggle('active', id === name);
+  if (name === 'game') startLoop();
+  syncControls();
+}
+let toastTimer = null;
+function toast(msg, bad = false, ms = 2600) {
+  const t = $('toast');
+  t.textContent = msg; t.classList.toggle('bad', bad); t.hidden = false;
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => { t.hidden = true; }, ms);
+}
+let bannerTimer = null;
+function banner(msg, ms = 2200) {
+  const b = $('banner'); b.textContent = msg; b.hidden = false;
+  clearTimeout(bannerTimer); bannerTimer = setTimeout(() => { b.hidden = true; }, ms);
+}
+let centerTimer = null;
+function center(msg, { ms = 0, small = false } = {}) {
+  const c = $('overlay-center');
+  c.textContent = msg; c.classList.toggle('small-text', small); c.hidden = false;
+  clearTimeout(centerTimer);
+  if (ms) centerTimer = setTimeout(() => { c.hidden = true; }, ms);
+}
+const hideCenter = () => { $('overlay-center').hidden = true; clearTimeout(centerTimer); };
+function setStatus(kind, text) {
+  for (const id of ['menu-status', 'lobby-status']) { const el = $(id); el.classList.remove('ok', 'bad', 'wait'); el.classList.add(kind); }
+  $('menu-status-text').textContent = text; $('lobby-status-text').textContent = text;
+  const net = $('hud-net'); net.classList.remove('ok', 'bad', 'wait'); net.classList.add(kind);
+}
+function menuError(msg) { const e = $('menu-error'); e.textContent = msg || ''; e.hidden = !msg; }
+const modals = ['modal-howto', 'modal-settings', 'modal-menu'];
+function openModal(id) { for (const m of modals) $(m).hidden = m !== id; syncControls(); }
+function closeModals() { for (const m of modals) $(m).hidden = true; syncControls(); }
+const modalOpen = () => modals.some((m) => !$(m).hidden);
+function esc(s) { return String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+
+async function copyText(text) {
+  try { if (navigator.clipboard && window.isSecureContext) { await navigator.clipboard.writeText(text); return true; } } catch (e) { /* fall through */ }
+  try {
+    const ta = document.createElement('textarea');
+    ta.value = text; ta.setAttribute('readonly', ''); ta.style.cssText = 'position:fixed;opacity:0;top:0;left:0';
+    document.body.appendChild(ta); ta.select(); ta.setSelectionRange(0, 9999);
+    const ok = document.execCommand('copy'); ta.remove(); return ok;
+  } catch (e) { return false; }
+}
+
+// ---------------------------------------------------------------- session persistence (for reconnecting mid-match)
+function saveSession() { try { sessionStorage.setItem(SESSION_KEY, JSON.stringify({ code: S.code, id: S.me.id, token: S.me.token })); } catch (e) { /* ignore */ } }
+function loadSession() { try { return JSON.parse(sessionStorage.getItem(SESSION_KEY) || 'null'); } catch (e) { return null; } }
+function clearSession() { try { sessionStorage.removeItem(SESSION_KEY); } catch (e) { /* ignore */ } }
+
+// ---------------------------------------------------------------- controls
+const controls = new Controls(
+  { controls: $('controls'), zone: $('joy-zone'), base: $('joy-base'), knob: $('joy-knob'), bomb: $('btn-bomb'), det: $('btn-det'), trap: $('btn-trap') },
+  { move: onMove, bomb: () => act('game:bomb'), detonate: () => act('game:detonate'), trap: () => act('game:trap') },
+);
+let cur = { dx: 0, dy: 0 }, lastSent = { dx: 0, dy: 0, at: 0 }, flushTimer = null;
+function canPlay() { return !!(socket && socket.connected && S.inMatch && S.matchActive && S.localAlive && !modalOpen()); }
+function onMove(dx, dy) { cur = { dx, dy }; flushInput(); }
+function flushInput() {
+  if (!canPlay() && (cur.dx !== 0 || cur.dy !== 0)) { if (lastSent.dx === 0 && lastSent.dy === 0) return; }
+  const now = performance.now();
+  if (now - lastSent.at < 33) { if (!flushTimer) flushTimer = setTimeout(() => { flushTimer = null; flushInput(); }, 34); return; }
+  const dx = canPlay() ? cur.dx : 0, dy = canPlay() ? cur.dy : 0;
+  if (dx === lastSent.dx && dy === lastSent.dy) return;
+  lastSent = { dx, dy, at: now };
+  if (socket && socket.connected) socket.emit('game:input', { dx, dy });
+}
+setInterval(() => { // keep-alive so the server does not time out a held direction
+  if (canPlay() && (cur.dx || cur.dy) && socket.connected) { lastSent.at = performance.now(); socket.emit('game:input', { dx: cur.dx, dy: cur.dy }); }
+}, 250);
+function act(ev) { if (canPlay()) socket.emit(ev); }
+function syncControls() {
+  const on = S.screen === 'game' && S.inMatch && S.matchActive && S.localAlive && !modalOpen();
+  controls.setEnabled(on);
+  if (!on) { cur = { dx: 0, dy: 0 }; flushInput(); }
+}
+
+// ---------------------------------------------------------------- game loop
+let lastFrame = 0;
+function startLoop() {
+  if (S.running) return;
+  S.running = true; lastFrame = performance.now();
+  const loop = (t) => {
+    if (S.screen !== 'game') { S.running = false; return; }
+    const dt = (t - lastFrame) / 1000; lastFrame = t;
+    if (S.scene) S.scene.render(dt);
+    requestAnimationFrame(loop);
+  };
+  requestAnimationFrame(loop);
+}
+function onResize() { if (S.scene) S.scene.resize(); }
+window.addEventListener('resize', onResize);
+window.addEventListener('orientationchange', () => setTimeout(onResize, 200));
+
+// ---------------------------------------------------------------- networking
+function emitAck(ev, data, cb) {
+  if (!socket) return;
+  socket.timeout(6000).emit(ev, data, (err, res) => {
+    if (err) { cb({ ok: false, error: 'The server did not answer. Check your connection and try again.' }); return; }
+    cb(res || { ok: false, error: 'Unexpected reply from the server.' });
+  });
+}
+
+if (socket) {
+  socket.on('connect', () => {
+    setStatus('ok', 'Connected');
+    $('conn-banner').hidden = true;
+    const wasReconnect = S.everConnected;
+    S.everConnected = true;
+    const sess = loadSession();
+    if (sess && wasReconnect && (!transport || !transport.isHost)) {
+      emitAck('session:resume', sess, (res) => {
+        if (res.ok) {
+          S.me = res.you; S.code = res.code; S.room = res.room; saveSession();
+          if (wasReconnect) toast('Reconnected');
+          if (res.room.phase === 'lobby') { renderLobby(); showScreen('lobby'); }
+        } else {
+          clearSession();
+          if (wasReconnect) { toast('Could not rejoin your match. It may have ended.', true, 4000); leaveToMenu(); }
+        }
+      });
+    }
+  });
+  socket.on('disconnect', () => {
+    setStatus('bad', 'Disconnected, reconnecting…');
+    if (S.me) $('conn-banner').hidden = false;
+    cur = { dx: 0, dy: 0 };
+  });
+  socket.on('connect_error', () => { setStatus('bad', 'Cannot reach the server. Retrying…'); });
+  socket.io.on('reconnect_attempt', () => setStatus('wait', 'Reconnecting…'));
+  socket.on('hostgone', () => { toast('The host left or lost connection. The match is over.', true, 5000); if (transport) transport.shutdown(true); leaveToMenu(); });
+  socket.on('session:replaced', () => { clearSession(); toast('This game was opened somewhere else.', true, 4000); leaveToMenu(); });
+
+  socket.on('room:update', (room) => {
+    S.room = room;
+    if (!S.me) return;
+    if (room.phase === 'lobby') {
+      if (S.inMatch) { exitMatch(); }
+      renderLobby();
+      if (S.screen !== 'lobby') showScreen('lobby');
+    } else if (room.phase === 'ended') {
+      renderResultsButtons();
+    }
+    if (S.screen === 'game') updateHudPlayers();
+  });
+  socket.on('match:start', enterMatch);
+  socket.on('game:state', enterMatch);
+  socket.on('game:snapshot', onSnapshot);
+  socket.on('match:end', onMatchEnd);
+
+  setInterval(() => {
+    if (!socket.connected) return;
+    const t0 = performance.now();
+    socket.timeout(2500).emit('net:ping', (err) => {
+      if (err) return;
+      S.ping = Math.round(performance.now() - t0);
+      $('hud-net-text').textContent = `${S.ping} ms`;
+      setStatus(S.ping > 400 ? 'wait' : 'ok', S.ping > 400 ? `Slow connection (${S.ping} ms)` : 'Connected');
+    });
+  }, 3000);
+}
+
+// ---------------------------------------------------------------- menu actions
+const nickInput = $('nick-input'), codeInput = $('code-input');
+try { nickInput.value = localStorage.getItem('bb3d.nick') || ''; } catch (e) { /* ignore */ }
+const urlRoom = new URLSearchParams(location.search).get('room');
+if (urlRoom) codeInput.value = urlRoom.toUpperCase().slice(0, 4);
+codeInput.addEventListener('input', () => { codeInput.value = codeInput.value.toUpperCase().replace(/[^A-Z0-9]/g, ''); });
+codeInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') $('btn-join').click(); });
+nickInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') $('btn-create').click(); });
+
+function nick() {
+  const n = nickInput.value.trim().replace(/\s+/g, ' ').slice(0, 12);
+  try { localStorage.setItem('bb3d.nick', n); } catch (e) { /* ignore */ }
+  return n || 'Monkey';
+}
+function afterJoin(res) {
+  S.pending = false; $('btn-create').disabled = false; $('btn-join').disabled = false;
+  if (!res.ok) { menuError(res.error || 'Could not join.'); return; }
+  menuError('');
+  S.me = res.you; S.code = res.code; S.room = res.room; saveSession();
+  try { history.replaceState(null, '', location.pathname); } catch (e) { /* ignore */ }
+  renderLobby(); showScreen('lobby');
+}
+function beginSession(mode, ev, data, code) {
+  S.pending = true; $('btn-create').disabled = true; $('btn-join').disabled = true; menuError('');
+  if (!transport) { emitAck(ev, data, afterJoin); return; }
+  clearSession();
+  menuError(''); setStatus('wait', mode === 'create' ? 'Opening room…' : 'Connecting to host…');
+  transport.prepare(mode, code).then(() => emitAck(ev, data, (res) => {
+    if (!res.ok) transport.shutdown(true);
+    afterJoin(res);
+  })).catch((err) => {
+    transport.shutdown(true);
+    setStatus('ok', 'Ready');
+    afterJoin({ ok: false, error: err && err.message ? err.message : 'Could not connect.' });
+  });
+}
+$('btn-create').addEventListener('click', () => {
+  if (S.pending) return;
+  audio.unlock(); audio.ui();
+  if (!transport && (!socket || !socket.connected)) { menuError('Not connected to the server yet. Wait for the green status and try again.'); return; }
+  beginSession('create', 'room:create', { nick: nick() });
+});
+$('btn-join').addEventListener('click', () => {
+  if (S.pending) return;
+  audio.unlock(); audio.ui();
+  const code = codeInput.value.trim();
+  if (code.length !== 4) { menuError('Enter the 4-character room code your friend shared.'); return; }
+  if (!transport && (!socket || !socket.connected)) { menuError('Not connected to the server yet. Wait for the green status and try again.'); return; }
+  beginSession('join', 'room:join', { code, nick: nick() }, code.toUpperCase());
+});
+$('btn-howto').addEventListener('click', () => openModal('modal-howto'));
+$('btn-settings').addEventListener('click', () => openModal('modal-settings'));
+for (const b of document.querySelectorAll('.modal-close')) b.addEventListener('click', closeModals);
+
+// ---------------------------------------------------------------- lobby
+const isHost = () => !!(S.room && S.me && S.room.hostId === S.me.id);
+function renderLobby() {
+  const r = S.room; if (!r) return;
+  $('lobby-code').textContent = r.code;
+  $('lobby-count').textContent = `${r.players.length}/${r.max}`;
+  const ul = $('lobby-players'); ul.innerHTML = '';
+  for (const p of r.players) {
+    const li = document.createElement('li');
+    if (S.me && p.id === S.me.id) li.classList.add('me');
+    li.innerHTML = `<i class="swatch" style="background:${esc(p.color)}"></i><span class="name">${esc(p.nick)}${S.me && p.id === S.me.id ? ' (you)' : ''}</span>`
+      + (p.id === r.hostId ? '<span class="tag host">Host</span>' : '')
+      + (p.connected ? (p.ready && p.id !== r.hostId ? '<span class="tag ready">Ready</span>' : '') : '<span class="tag off">Offline</span>');
+    ul.appendChild(li);
+  }
+  const host = isHost();
+  const me = r.players.find((p) => S.me && p.id === S.me.id);
+  const others = r.players.filter((p) => p.id !== r.hostId);
+  const allReady = others.every((p) => p.ready);
+  $('btn-start').hidden = !host;
+  $('btn-ready').hidden = host;
+  if (host) {
+    $('btn-start').disabled = !(r.players.length >= 2 && allReady);
+    $('lobby-hint').textContent = r.players.length < 2 ? 'Share the code. You need at least 2 players.' : (allReady ? 'Everyone is ready. Start when you like.' : 'Waiting for everyone to press Ready…');
+  } else {
+    $('btn-ready').textContent = me && me.ready ? 'Not ready' : 'Ready';
+    $('lobby-hint').textContent = me && me.ready ? 'Waiting for the host to start…' : 'Press Ready when you are set.';
+  }
+}
+$('btn-ready').addEventListener('click', () => {
+  audio.ui();
+  const me = S.room.players.find((p) => p.id === S.me.id);
+  emitAck('room:ready', { ready: !(me && me.ready) }, (res) => { if (!res.ok) toast(res.error, true); });
+});
+$('btn-start').addEventListener('click', () => {
+  audio.unlock(); audio.ui();
+  emitAck('room:start', {}, (res) => { if (!res.ok) toast(res.error, true); });
+});
+$('btn-leave').addEventListener('click', leaveRoom);
+$('btn-copy-code').addEventListener('click', async () => {
+  const ok = await copyText(S.code);
+  toast(ok ? `Room code ${S.code} copied` : 'Could not copy. Press and hold the code to copy it.', !ok);
+});
+$('btn-copy-link').addEventListener('click', async () => {
+  const url = `${location.href.split('#')[0].split('?')[0]}?room=${S.code}`;
+  const ok = await copyText(url);
+  toast(ok ? 'Invite link copied' : `Could not copy. Share this link: ${url}`, !ok, ok ? 2600 : 6000);
+});
+
+function leaveRoom() {
+  if (socket && socket.connected) socket.emit('room:leave', {});
+  if (transport) setTimeout(() => transport.shutdown(true), 50);
+  leaveToMenu();
+}
+function leaveToMenu() {
+  clearSession();
+  S.me = null; S.code = null; S.room = null; S.results = null;
+  if (transport) S.everConnected = false;
+  clearTimeout(S.resultsTimer);
+  exitMatch();
+  closeModals();
+  $('conn-banner').hidden = true;
+  if (transport) setStatus('ok', 'Ready (no server needed)');
+  showScreen('menu');
+}
+
+// ---------------------------------------------------------------- match
+function enterMatch(payload) {
+  if (!S.me) return;
+  try {
+    if (!S.scene) {
+      S.scene = new GameScene($('gl'), settings);
+      S.scene.onTick = () => audio.tick();
+    }
+  } catch (e) {
+    console.error(e);
+    fatal('Your browser could not start 3D graphics (WebGL). Try updating your browser or turning off battery saver.');
+    return;
+  }
+  clearTimeout(S.resultsTimer);
+  S.results = null; S.ended = false;
+  showScreen('game');
+  S.scene.resize();
+  S.scene.setup(payload, S.me.id);
+  S.inMatch = true; S.matchActive = payload.snap.ph === 'active'; S.localAlive = true; S.wentActive = S.matchActive; S.lastCount = -1;
+  S.players = payload.players;
+  hideCenter(); $('banner').hidden = true; $('spectate').hidden = true;
+  closeModals();
+  buildHudPlayers();
+  applySnapshotToHud(payload.snap);
+  syncControls();
+}
+function exitMatch() {
+  S.inMatch = false; S.matchActive = false;
+  if (S.scene) S.scene.clearMatch();
+  hideCenter();
+  syncControls();
+}
+
+function onSnapshot(snap) {
+  if (!S.inMatch || !S.scene) return;
+  S.scene.pushSnapshot(snap);
+  // synchronise crate count: if we missed a crate event, ask for a full state (rate limited)
+  if (snap.cr !== S.scene.crateCount && performance.now() - S.lastResync > 2500) {
+    S.lastResync = performance.now(); socket.emit('state:request', {});
+  }
+  // phase handling
+  if (snap.ph === 'countdown') {
+    const n = Math.ceil(snap.cd / 1000);
+    if (n !== S.lastCount && n > 0) { S.lastCount = n; center(String(n)); audio.beep(false); }
+  } else if (snap.ph === 'active' && !S.wentActive) {
+    S.wentActive = true; S.matchActive = true; center('GO!', { ms: 800 }); audio.beep(true); syncControls();
+  }
+  let crateSound = false;
+  for (const ev of snap.ev || []) {
+    S.scene.handleEvent(ev);
+    switch (ev.t) {
+      case 'bomb': audio.place(); break;
+      case 'boom': audio.explosion(); break;
+      case 'crate': crateSound = true; break;
+      case 'pickup': if (ev.p === S.me.id) { audio.pickup(); banner(`Power-up: ${POWER_NAMES[ev.k] || ev.k}`, 1400); } break;
+      case 'shield': audio.shield(); if (ev.id === S.me.id) banner('Shield absorbed the blast!', 1600); break;
+      case 'slip': audio.slip(); break;
+      case 'kick': audio.kick(); break;
+      case 'elim': onElim(ev); break;
+      default: break;
+    }
+  }
+  if (crateSound) audio.crate();
+  applySnapshotToHud(snap);
+}
+const POWER_NAMES = { bomb: 'Extra bomb', range: 'Bigger blast', speed: 'Speed boost', shield: 'Shield', detonator: 'Remote detonator', banana: 'Banana peel', kick: 'Bomb kick' };
+
+function nameOf(id) { const p = (S.players || []).find((q) => q.id === id); return p ? p.nick : 'Someone'; }
+function onElim(ev) {
+  audio.elim();
+  if (ev.id === S.me.id) {
+    S.localAlive = false; syncControls();
+    $('spectate').hidden = false;
+    banner(ev.r === 'blast' ? 'You were blasted! Now spectating.' : 'You are out. Now spectating.', 3000);
+  } else {
+    const why = ev.r === 'disconnect' ? ' lost connection' : (ev.r === 'left' ? ' left the match' : ' is out');
+    banner(`${nameOf(ev.id)}${why}`, 2200);
+  }
+}
+
+// ---------------------------------------------------------------- HUD
+function buildHudPlayers() {
+  const box = $('hud-players'); box.innerHTML = '';
+  for (const p of S.players) {
+    const d = document.createElement('div'); d.className = 'hud-chip'; d.dataset.id = p.id;
+    d.innerHTML = `<i style="background:${esc(p.color)}"></i><span>${esc(p.nick)}${p.id === S.me.id ? ' (you)' : ''}</span>`;
+    box.appendChild(d);
+  }
+}
+function updateHudPlayers() { /* chip state is driven by snapshots */ }
+function fmtTime(ms) { const s = Math.ceil(ms / 1000); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`; }
+function applySnapshotToHud(snap) {
+  $('hud-timer').textContent = fmtTime(snap.tl);
+  $('hud-timer').classList.toggle('low', snap.ph === 'active' && snap.tl < 30000);
+  let alive = 0;
+  for (const p of snap.p) {
+    if (p.a) alive++;
+    const chip = document.querySelector(`.hud-chip[data-id="${p.id}"]`);
+    if (chip) { chip.classList.toggle('dead', !p.a); chip.classList.toggle('off', !p.c && !!p.a); }
+  }
+  $('hud-alive').textContent = `${alive} alive`;
+  const me = snap.p.find((p) => p.id === S.me.id);
+  if (!me) return;
+  $('stat-bombs').textContent = `Bombs ${Math.max(0, me.mb - me.bc)}/${me.mb}`;
+  $('stat-range').textContent = `Range ${me.rg}`;
+  const fx = [];
+  if (me.sp > 0) fx.push(`Speed ${Math.ceil(me.sp / 1000)}s`);
+  if (me.sh) fx.push('Shield');
+  if (me.det > 0) fx.push(`Boom x${me.det}`);
+  if (me.tr > 0) fx.push(`Peel x${me.tr}`);
+  if (me.kk) fx.push('Kick');
+  const key = fx.join('|');
+  const el = $('stat-effects');
+  if (el.dataset.key !== key) { el.dataset.key = key; el.innerHTML = fx.map((t) => `<span class="chip fx">${esc(t)}</span>`).join(''); }
+  controls.setAvailability({ det: me.det > 0 && !!me.a, trap: me.tr > 0 && !!me.a });
+  if (!me.a && S.localAlive) { S.localAlive = false; $('spectate').hidden = false; syncControls(); }
+}
+
+$('btn-menu').addEventListener('click', () => { audio.ui(); openModal('modal-menu'); });
+window.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && S.screen === 'game') { if (modalOpen()) closeModals(); else openModal('modal-menu'); }
+});
+$('btn-resume').addEventListener('click', closeModals);
+$('btn-menu-settings').addEventListener('click', () => openModal('modal-settings'));
+$('btn-menu-howto').addEventListener('click', () => openModal('modal-howto'));
+$('btn-menu-leave').addEventListener('click', () => { if (confirm('Leave the match? You will be eliminated.')) leaveRoom(); });
+// Closing settings/how-to from the in-game menu returns to the game, which keeps running.
+
+// ---------------------------------------------------------------- results
+function onMatchEnd(result) {
+  if (!S.me) return;
+  S.results = result; S.ended = true; S.matchActive = false; syncControls();
+  const winner = result.winnerId;
+  if (S.scene && S.inMatch) S.scene.setWinner(winner);
+  if (winner) {
+    const mine = winner === S.me.id;
+    center(mine ? 'You win!' : `${nameOf(winner)} wins!`, { small: !mine });
+    mine ? audio.win() : audio.lose();
+  } else {
+    center('Draw!');
+    audio.lose();
+  }
+  clearTimeout(S.resultsTimer);
+  S.resultsTimer = setTimeout(showResults, 3800);
+}
+function showResults() {
+  const r = S.results; if (!r) return;
+  hideCenter();
+  const winner = r.standings.find((s) => s.id === r.winnerId);
+  $('result-title').textContent = winner ? (winner.id === S.me.id ? 'You win!' : `${winner.nick} wins!`) : 'Draw';
+  const why = { last_standing: 'Last banana standing.', all_eliminated: 'Everyone went out at the same time.', time_up: 'Time ran out with several players alive.' }[r.reason] || '';
+  $('result-sub').textContent = `${why} Match length ${fmtTime(r.durationMs)}.`;
+  const ol = $('result-list'); ol.innerHTML = '';
+  for (const s of r.standings) {
+    const li = document.createElement('li');
+    if (s.id === r.winnerId) li.classList.add('win');
+    const tie = r.drawIds.includes(s.id) && !r.winnerId;
+    li.innerHTML = `<span class="rank">${s.rank}</span><i class="swatch" style="background:${esc(s.color)}"></i><span class="name">${esc(s.nick)}${s.id === S.me.id ? ' (you)' : ''}</span><span class="meta">${s.kills} KO${s.kills === 1 ? '' : 's'}${tie ? ' · draw' : ''}</span>`;
+    ol.appendChild(li);
+  }
+  renderResultsButtons();
+  showScreen('results');
+}
+function renderResultsButtons() {
+  const host = isHost();
+  $('btn-rematch').hidden = !host; $('btn-lobby').hidden = !host; $('results-wait').hidden = host;
+  if (S.room) $('btn-rematch').disabled = S.room.players.length < 2;
+}
+$('btn-rematch').addEventListener('click', () => emitAck('room:rematch', {}, (res) => { if (!res.ok) toast(res.error, true); }));
+$('btn-lobby').addEventListener('click', () => emitAck('room:lobby', {}, (res) => { if (!res.ok) toast(res.error, true); }));
+$('btn-results-leave').addEventListener('click', leaveRoom);
+
+if (transport) setStatus('ok', 'Ready (no server needed)'); else setStatus('wait', 'Connecting…');
+
 </script>
 </body>
 </html>
