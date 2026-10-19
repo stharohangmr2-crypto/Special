@@ -1401,7 +1401,11 @@ const ICE = { iceServers: [
 const clone = (v) => (v === undefined ? undefined : JSON.parse(JSON.stringify(v)));
 const isObj = (v) => v !== null && typeof v === 'object' && !Array.isArray(v);
 
-function createTransport({ Peer, rooms, config, now = () => Date.now(), timers = { setTimeout, clearTimeout, setInterval, clearInterval } }) {
+function createTransport({ Peer, rooms, config, now = () => Date.now(), timers = {
+  // Wrapped in arrows: browsers throw "Illegal invocation" if these are called with a different `this`.
+  setTimeout: (f, ms) => globalThis.setTimeout(f, ms), clearTimeout: (t) => globalThis.clearTimeout(t),
+  setInterval: (f, ms) => globalThis.setInterval(f, ms), clearInterval: (t) => globalThis.clearInterval(t),
+} }) {
   const { RoomManager, RateLimiter } = rooms;
 
   // ------------------------------------------------------------ client-facing socket
